@@ -33,6 +33,11 @@ trait BagStoreIndexApp extends AddBagToIndex
   val dbPassword: Option[String] = Option(properties.getString("bag-store-index.database.password"))
 
   def validateSettings(): Unit = {
+    def userPasswordSettings = {
+      dbUsername.isEmpty && dbPassword.isEmpty || dbUsername.isDefined && dbPassword.isDefined
+    }
+    assert(userPasswordSettings, "database username and password should be either both defined or not defined")
+
     // TODO some asserts to validate basic settings
   }
 }
