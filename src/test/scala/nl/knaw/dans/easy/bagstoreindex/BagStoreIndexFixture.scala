@@ -16,11 +16,21 @@
 package nl.knaw.dans.easy.bagstoreindex
 
 import java.nio.file.{ Files, Paths }
+import java.util.UUID
 
-import nl.knaw.dans.easy.bagstoreindex.components.Configuration
+import nl.knaw.dans.easy.bagstoreindex.components.{ Configuration, Database }
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import org.joda.time.DateTime
+import org.joda.time.format.ISODateTimeFormat
 import org.scalatest.BeforeAndAfter
 
-trait BagStoreIndexFixture extends TestSupportFixture with BeforeAndAfter with Configuration {
+import scala.util.Try
+
+trait BagStoreIndexFixture extends TestSupportFixture
+  with BeforeAndAfter
+  with Database
+  with Configuration
+  with DebugEnhancedLogging {
 
   private val dbLocation = testDir.resolve("bag-store-index.db")
   Files.copy(Paths.get(getClass.getClassLoader.getResource("database/bag-store-index.db").toURI), dbLocation)
@@ -29,4 +39,32 @@ trait BagStoreIndexFixture extends TestSupportFixture with BeforeAndAfter with C
   val dbUrl: String = s"jdbc:sqlite:${dbLocation.toString}"
   val dbUsername = Option.empty[String]
   val dbPassword = Option.empty[String]
+
+  before {
+    initConnection()
+  }
+
+  after {
+    connection.close()
+  }
+
+  case class Record(bagId: BagId, parentId: BagId, timestamp: DateTime)
+
+  def getAllBagRelations: Try[List[Record]] = Try {
+    val statement = connection.createStatement
+    statement.closeOnCompletion()
+    val resultSet = statement.executeQuery("SELECT * FROM BagRelation;")
+
+    val result = Stream.continually(resultSet.next())
+      .takeWhile(b => b)
+      .map(_ => Record(
+        bagId = UUID.fromString(resultSet.getString("bagId")),
+        parentId = UUID.fromString(resultSet.getString("base")),
+        timestamp = DateTime.parse(resultSet.getString("timestamp"), ISODateTimeFormat.dateTime())))
+      .toList
+
+    resultSet.close()
+
+    result
+  }
 }

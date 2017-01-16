@@ -17,19 +17,11 @@ package nl.knaw.dans.easy.bagstoreindex.components
 
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagstoreindex.{ BagStoreIndexFixture, DatabaseFixture, ParentNotFoundException }
+import nl.knaw.dans.easy.bagstoreindex.{ BagStoreIndexFixture, ParentNotFoundException }
 
 import scala.util.{ Failure, Success }
 
-class AddBagToIndexSpec extends BagStoreIndexFixture with AddBagToIndex with Database with DatabaseFixture {
-
-  before {
-    initConnection()
-  }
-
-  after {
-    connection.close()
-  }
+class AddBagToIndexSpec extends BagStoreIndexFixture with AddBagToIndex {
 
   def addParent(): UUID = {
     val bagId = UUID.randomUUID()
