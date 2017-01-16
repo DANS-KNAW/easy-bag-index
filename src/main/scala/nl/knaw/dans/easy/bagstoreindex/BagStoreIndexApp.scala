@@ -17,13 +17,12 @@ package nl.knaw.dans.easy.bagstoreindex
 
 import java.io.File
 
-import nl.knaw.dans.easy.bagstoreindex.components.{ AddBagToIndex, Configuration, Database }
+import nl.knaw.dans.easy.bagstoreindex.components.{ AddBagToIndex, Database }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.configuration.PropertiesConfiguration
 
 trait BagStoreIndexApp extends AddBagToIndex
   with Database
-  with Configuration
   with DebugEnhancedLogging {
 
   val properties = new PropertiesConfiguration(new File(System.getProperty("app.home"), "cfg/application.properties"))

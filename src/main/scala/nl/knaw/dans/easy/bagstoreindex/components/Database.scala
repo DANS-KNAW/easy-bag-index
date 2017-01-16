@@ -26,10 +26,15 @@ import org.joda.time.format.ISODateTimeFormat
 import scala.util.Try
 
 trait Database {
-  this: Configuration with DebugEnhancedLogging =>
+  this: DebugEnhancedLogging =>
   import logger._
 
   var connection: Connection = _
+
+  val dbDriverClass: String
+  val dbUrl: String
+  val dbUsername: Option[String]
+  val dbPassword: Option[String]
 
   def initConnection(): Unit = {
     info("Creating database connection ...")

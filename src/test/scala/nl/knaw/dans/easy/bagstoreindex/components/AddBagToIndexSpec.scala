@@ -17,11 +17,11 @@ package nl.knaw.dans.easy.bagstoreindex.components
 
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagstoreindex.{ BagStoreIndexFixture, ParentNotFoundException }
+import nl.knaw.dans.easy.bagstoreindex.{ BagStoreIndexDatabaseFixture, ParentNotFoundException }
 
 import scala.util.{ Failure, Success }
 
-class AddBagToIndexSpec extends BagStoreIndexFixture with AddBagToIndex {
+class AddBagToIndexSpec extends BagStoreIndexDatabaseFixture with AddBagToIndex {
 
   def addParent(): UUID = {
     val bagId = UUID.randomUUID()

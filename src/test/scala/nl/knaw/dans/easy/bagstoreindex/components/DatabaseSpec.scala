@@ -17,13 +17,13 @@ package nl.knaw.dans.easy.bagstoreindex.components
 
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagstoreindex.BagStoreIndexFixture
+import nl.knaw.dans.easy.bagstoreindex.BagStoreIndexDatabaseFixture
 import nl.knaw.dans.lib.error.TraversableTryExtensions
 import org.joda.time.DateTime
 
 import scala.util.{ Failure, Success }
 
-class DatabaseSpec extends BagStoreIndexFixture with Database {
+class DatabaseSpec extends BagStoreIndexDatabaseFixture with Database {
 
   "addBagRelation" should "insert a new bag relation into the database" in {
     val bagIds = List.fill(3)(UUID.randomUUID())

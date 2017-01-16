@@ -18,7 +18,7 @@ package nl.knaw.dans.easy.bagstoreindex
 import java.nio.file.{ Files, Paths }
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagstoreindex.components.{ Configuration, Database }
+import nl.knaw.dans.easy.bagstoreindex.components.Database
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
@@ -26,10 +26,9 @@ import org.scalatest.BeforeAndAfter
 
 import scala.util.Try
 
-trait BagStoreIndexFixture extends TestSupportFixture
+trait BagStoreIndexDatabaseFixture extends TestSupportFixture
   with BeforeAndAfter
   with Database
-  with Configuration
   with DebugEnhancedLogging {
 
   private val dbLocation = testDir.resolve("bag-store-index.db")
