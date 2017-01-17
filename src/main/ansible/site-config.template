@@ -1,8 +1,8 @@
 <VirtualHost *:80>
-  ServerName bagstore
+  ServerName bagindex
 
-  ErrorLog logs/bagstore-index-error.log
-  CustomLog logs/bagstore-index-access.log common
+  ErrorLog logs/bag-index-error.log
+  CustomLog logs/bag-index-access.log common
   ProxyTimeout 600
 
   <Location / >

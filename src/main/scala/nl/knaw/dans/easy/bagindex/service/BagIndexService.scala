@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.knaw.dans.easy.bagstoreindex.service
+package nl.knaw.dans.easy.bagindex.service
 
-import nl.knaw.dans.easy.bagstoreindex.{ BagStoreIndexApp, CONTEXT_ATTRIBUTE_KEY_BAGSTOREINDEX_APP => appKey }
+import nl.knaw.dans.easy.bagindex.{ BagIndexApp, CONTEXT_ATTRIBUTE_KEY_BAGINDEX_APP => appKey }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.eclipse.jetty.ajp.Ajp13SocketConnector
 import org.eclipse.jetty.server.Server
@@ -24,14 +24,14 @@ import org.scalatra.servlet.ScalatraListener
 
 import scala.util.Try
 
-class BagStoreIndexService extends BagStoreIndexApp with DebugEnhancedLogging {
+class BagIndexService extends BagIndexApp with DebugEnhancedLogging {
   import logger._
 
   // TODO info's for base directory, etc.
   info(s"database connection: $dbUrl")
   validateSettings()
 
-  private val port = properties.getInt("bag-store-index.daemon.http.port")
+  private val port = properties.getInt("bag-index.daemon.http.port")
   val server = new Server(port)
   val context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS)
   context.setAttribute(appKey, this)
@@ -39,9 +39,9 @@ class BagStoreIndexService extends BagStoreIndexApp with DebugEnhancedLogging {
   server.setHandler(context)
   info(s"HTTP port is $port")
 
-  if (properties.containsKey("bag-store-index.daemon.ajp.port")) {
+  if (properties.containsKey("bag-index.daemon.ajp.port")) {
     val ajp = new Ajp13SocketConnector
-    val ajpPort = properties.getInt("bag-store-index.daemon.ajp.port")
+    val ajpPort = properties.getInt("bag-index.daemon.ajp.port")
     ajp.setPort(ajpPort)
     server.addConnector(ajp)
     info(s"AJP port is $ajpPort")
@@ -64,13 +64,13 @@ class BagStoreIndexService extends BagStoreIndexApp with DebugEnhancedLogging {
   }
 }
 
-object BagStoreIndexService extends DebugEnhancedLogging {
+object BagIndexService extends DebugEnhancedLogging {
 
-  def apply(): BagStoreIndexService = new BagStoreIndexService
+  def apply(): BagIndexService = new BagIndexService
 
   def main(args: Array[String]): Unit = {
     import logger._
-    val service = BagStoreIndexService()
+    val service = BagIndexService()
     Runtime.getRuntime.addShutdownHook(new Thread("service-shutdown") {
       override def run(): Unit = {
         info("Stopping service ...")

@@ -1,6 +1,6 @@
-package nl.knaw.dans.easy.bagstoreindex.components
+package nl.knaw.dans.easy.bagindex.components
 
-import nl.knaw.dans.easy.bagstoreindex.BagId
+import nl.knaw.dans.easy.bagindex.BagId
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
 import scala.util.Try

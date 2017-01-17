@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.knaw.dans.easy.bagstoreindex.command
+package nl.knaw.dans.easy.bagindex.command
 
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagstoreindex.{ BagId, BaseId, Version }
+import nl.knaw.dans.easy.bagindex.{ BagId, BaseId, Version }
 import org.apache.commons.configuration.PropertiesConfiguration
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
@@ -27,13 +27,13 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
   appendDefaultToDescription = true
   editBuilder(_.setHelpWidth(110))
 
-  printedName = "easy-bag-store-index"
+  printedName = "easy-bag-index"
   private val _________ = " " * printedName.length
   private val SUBCOMMAND_SEPARATOR = "---\n"
   version(s"$printedName v${Version()}")
   banner(
     s"""
-      |Index a BagStore
+      |Index for a bag store
       |
       |Usage:
       |

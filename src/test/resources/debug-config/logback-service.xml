@@ -2,9 +2,9 @@
 <configuration scan="true" scanPeriod="1 minute">
 	<appender name="FILE"
 		class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>data/easy-bag-store-index.log</file>
+		<file>data/easy-bag-index.log</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>data/easy-bag-store-index.%d{yyyy-MM-dd}.log</fileNamePattern>
+			<fileNamePattern>data/easy-bag-index.%d{yyyy-MM-dd}.log</fileNamePattern>
 			<maxHistory>30</maxHistory>
 		</rollingPolicy>
 		<encoder>

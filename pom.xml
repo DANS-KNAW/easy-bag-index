@@ -27,20 +27,20 @@
     </parent>
 
     <groupId>nl.knaw.dans.easy</groupId>
-    <artifactId>easy-bag-store-index</artifactId>
+    <artifactId>easy-bag-index</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <name>EASY Bag Store Index</name>
-    <url>https://github.com/DANS-KNAW/easy-bag-store-index</url>
+    <name>EASY Bag Index</name>
+    <url>https://github.com/DANS-KNAW/easy-bag-index</url>
     <description>Index a BagStore</description>
     <inceptionYear>2017</inceptionYear>
 
     <properties>
-        <main-class>nl.knaw.dans.easy.bagstoreindex.command.Command</main-class>
+        <main-class>nl.knaw.dans.easy.bagindex.command.Command</main-class>
     </properties>
 
     <scm>
-        <developerConnection>scm:git:https://github.com/DANS-KNAW/easy-bag-store-index</developerConnection>
+        <developerConnection>scm:git:https://github.com/DANS-KNAW/easy-bag-index</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
@@ -203,7 +203,7 @@
                         <artifactId>exec-maven-plugin</artifactId>
                         <configuration>
                             <classpathScope>test</classpathScope>
-                            <mainClass>nl.knaw.dans.easy.bagstoreindex.service.BagStoreIndexService</mainClass>
+                            <mainClass>nl.knaw.dans.easy.bagindex.service.BagIndexService</mainClass>
                         </configuration>
                     </plugin>
                 </plugins>

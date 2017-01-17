@@ -1,11 +1,11 @@
 [Unit]
-Description=EASY Bag Store Service Index
+Description=EASY Bag Index Service
 
 [Service]
-ExecStart=/usr/local/easy-bag-store-index/bin/easy-bag-store-index-service-start
+ExecStart=/usr/local/easy-bag-index/bin/easy-bag-index-service-start
 
-User=easy-bag-store-index
-Group=easy-bag-store-index
+User=easy-bag-index
+Group=easy-bag-index
 
 [Install]
 WantedBy=multi-user.target

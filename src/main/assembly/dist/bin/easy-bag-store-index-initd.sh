@@ -1,24 +1,24 @@
 #!/usr/bin/env bash
-#  /etc/init.d/easy-bag-store-index
+#  /etc/init.d/easy-bag-index
 # chkconfig: 2345 92 58
 
 ### BEGIN INIT INFO
-# Provides:          easy-bag-store-index
+# Provides:          easy-bag-index
 # Required-Start:    $remote_fs $syslog
 # Required-Stop:     $remote_fs $syslog
-# Short-Description: Starts the easy-bag-store-index service
+# Short-Description: Starts the easy-bag-index service
 # Description:       This file is used to start the daemon
 #                    and should be placed in /etc/init.d
 ### END INIT INFO
 
-NAME="easy-bag-store-index"
+NAME="easy-bag-index"
 EXEC="/usr/bin/jsvc"
-APPHOME="/usr/local/easy-bag-store-index"
+APPHOME="/usr/local/easy-bag-index"
 JAVA_HOME="/usr/lib/jvm/jre"
 CLASSPATH="$APPHOME/bin/$NAME.jar:`echo $APPHOME/lib/*.jar | sed 's/ /:/g'`"
-CLASS="nl.knaw.dans.easy.bagstoreindex.ServiceStarter"
+CLASS="nl.knaw.dans.easy.bagindex.ServiceStarter"
 ARGS=""
-USER="easy-bag-store-index"
+USER="easy-bag-index"
 PID="/var/run/$NAME.pid"
 OUTFILE="/var/log/$NAME/$NAME.out"
 ERRFILE="/var/log/$NAME/$NAME.err"

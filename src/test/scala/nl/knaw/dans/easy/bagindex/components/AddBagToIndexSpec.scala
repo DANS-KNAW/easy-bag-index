@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.knaw.dans.easy.bagstoreindex.components
+package nl.knaw.dans.easy.bagindex.components
 
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagstoreindex.{ BagIdNotFoundException, BagStoreIndexDatabaseFixture, Relation }
+import nl.knaw.dans.easy.bagindex.{ BagIdNotFoundException, BagIndexDatabaseFixture, Relation }
 
 import scala.util.{ Failure, Success }
 
-class AddBagToIndexSpec extends BagStoreIndexDatabaseFixture with AddBagToIndex {
+class AddBagToIndexSpec extends BagIndexDatabaseFixture with AddBagToIndex {
 
   def addBaseTest(): UUID = {
     val bagId = UUID.randomUUID()

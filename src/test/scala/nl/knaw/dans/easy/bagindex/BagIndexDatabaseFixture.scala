@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.knaw.dans.easy.bagstoreindex
+package nl.knaw.dans.easy.bagindex
 
 import java.nio.file.{ Files, Paths }
 
-import nl.knaw.dans.easy.bagstoreindex.components.Database
+import nl.knaw.dans.easy.bagindex.components.Database
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.scalatest.BeforeAndAfter
 
-trait BagStoreIndexDatabaseFixture extends TestSupportFixture
+trait BagIndexDatabaseFixture extends TestSupportFixture
   with BeforeAndAfter
   with Database
   with DebugEnhancedLogging {
 
-  private val dbLocation = testDir.resolve("bag-store-index.db")
-  Files.copy(Paths.get(getClass.getClassLoader.getResource("database/bag-store-index.db").toURI), dbLocation)
+  private val dbLocation = testDir.resolve("bag-index.db")
+  Files.copy(Paths.get(getClass.getClassLoader.getResource("database/empty-bag-index.db").toURI), dbLocation)
 
   val dbDriverClass: String = "org.sqlite.JDBC"
   val dbUrl: String = s"jdbc:sqlite:${dbLocation.toString}"

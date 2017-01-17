@@ -13,24 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.knaw.dans.easy.bagstoreindex
+package nl.knaw.dans.easy.bagindex
 
 import java.io.File
 
-import nl.knaw.dans.easy.bagstoreindex.components.{ AddBagToIndex, Database }
+import nl.knaw.dans.easy.bagindex.components.{ AddBagToIndex, Database }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.configuration.PropertiesConfiguration
 
-trait BagStoreIndexApp extends AddBagToIndex
+trait BagIndexApp extends AddBagToIndex
   with Database
   with DebugEnhancedLogging {
 
   val properties = new PropertiesConfiguration(new File(System.getProperty("app.home"), "cfg/application.properties"))
 
-  val dbDriverClass: String = properties.getString("bag-store-index.database.driver-class")
-  val dbUrl: String = properties.getString("bag-store-index.database.url")
-  val dbUsername: Option[String] = Option(properties.getString("bag-store-index.database.username"))
-  val dbPassword: Option[String] = Option(properties.getString("bag-store-index.database.password"))
+  val dbDriverClass: String = properties.getString("bag-index.database.driver-class")
+  val dbUrl: String = properties.getString("bag-index.database.url")
+  val dbUsername: Option[String] = Option(properties.getString("bag-index.database.username"))
+  val dbPassword: Option[String] = Option(properties.getString("bag-index.database.password"))
 
   def validateSettings(): Unit = {
     def userPasswordSettings = {

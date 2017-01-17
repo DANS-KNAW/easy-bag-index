@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.knaw.dans.easy.bagstoreindex.components
+package nl.knaw.dans.easy.bagindex.components
 
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagstoreindex.{ BagId, BagIdNotFoundException, BagStoreIndexDatabaseFixture, BaseId, Relation }
+import nl.knaw.dans.easy.bagindex.{ BagId, BagIdNotFoundException, BagIndexDatabaseFixture, BaseId, Relation }
 import nl.knaw.dans.lib.error.TraversableTryExtensions
 import org.joda.time.DateTime
 
 import scala.util.{ Failure, Success }
 
-class DatabaseSpec extends BagStoreIndexDatabaseFixture with Database {
+class DatabaseSpec extends BagIndexDatabaseFixture with Database {
 
   "addBagRelation" should "insert a new bag relation into the database" in {
     val bagIds = List.fill(3)(UUID.randomUUID())

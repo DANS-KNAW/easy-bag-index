@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.knaw.dans.easy.bagstoreindex.components
+package nl.knaw.dans.easy.bagindex.components
 
 import java.sql.{ Connection, DriverManager }
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagstoreindex.{ BagId, BagIdNotFoundException, BaseId, Relation }
+import nl.knaw.dans.easy.bagindex.{ BagId, BagIdNotFoundException, BaseId, Relation }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat

@@ -13,33 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.knaw.dans.easy.bagstoreindex.service
+package nl.knaw.dans.easy.bagindex.service
 
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.daemon.{ Daemon, DaemonContext }
 
 class ServiceStarter extends Daemon with DebugEnhancedLogging {
-  var bagStoreIndexService: BagStoreIndexService = _
+  var bagIndexService: BagIndexService = _
 
   def init(context: DaemonContext): Unit = {
     logger.info("Initializing service...")
-    bagStoreIndexService = BagStoreIndexService()
+    bagIndexService = BagIndexService()
     logger.info("Service initialized.")
   }
 
   def start(): Unit = {
     logger.info("Starting service...")
-    bagStoreIndexService.start()
+    bagIndexService.start()
     logger.info("Service started.")
   }
 
   def stop(): Unit = {
     logger.info("Stopping service...")
-    bagStoreIndexService.stop()
+    bagIndexService.stop()
   }
 
   def destroy(): Unit = {
-    bagStoreIndexService.destroy
+    bagIndexService.destroy
     logger.info("Service stopped.")
   }
 }

@@ -20,5 +20,5 @@
 # ansible-galaxy installed role from GitHub, which is automatically downloaded
 # when doing "vagrant up".
 
-ln -s ~/git/dtap/easy-bag-store-index-role `dirname $0`/roles/easy-bag-store-index
+ln -s ~/git/dtap/easy-bag-index-role `dirname $0`/roles/easy-bag-index
 

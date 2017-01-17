@@ -14,5 +14,5 @@
 # limitations under the License.
 #
 
-- src: https://github.com/DANS-KNAW/easy-bag-store-index-role
-  name: easy-bag-store-index
+- src: https://github.com/DANS-KNAW/easy-bag-index-role
+  name: easy-bag-index

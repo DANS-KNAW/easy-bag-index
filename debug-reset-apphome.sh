@@ -28,8 +28,8 @@ fi
 
 mkdir -p $TEMPDIR
 cp -r src/test/resources/bag-store $TEMPDIR/bag-store
-cp src/test/resources/database/bag-store-index.db $TEMPDIR/bag-store-index.db # TODO make sql script for this instead!
-touch $TEMPDIR/easy-bag-store-index.log
+cp src/test/resources/database/empty-bag-index.db $TEMPDIR/bag-index.db # TODO make sql script for this instead!
+touch $TEMPDIR/easy-bag-index.log
 chmod -R 777 $TEMPDIR
 
 echo "A fresh application home directory for debugging has been set up at $APPHOME"

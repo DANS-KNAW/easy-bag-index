@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-- hosts: bagstore-index
+- hosts: bag-index
   become: yes
   tasks:
   - name: Install standard software
@@ -35,18 +35,18 @@
 
   - name: Configure server name
     lineinfile: dest=/etc/httpd/conf/httpd.conf
-      line='ServerName bagstore-index'
+      line='ServerName bag-index'
       insertafter='^# ServerName.*$'
 
   - name: Add configuration for site
-    template: src=site-config.template dest=/etc/httpd/conf.d/bagstore-index.conf
+    template: src=site-config.template dest=/etc/httpd/conf.d/bag-index.conf
 
-- hosts: bagstore-index
+- hosts: bag-index
   become: yes
   roles:
-    - easy-bag-store-index
+    - easy-bag-index
 
-- hosts: bagstore-index
+- hosts: bag-index
   become: yes
   tasks:
   - name: Reload Apache HTTP Server

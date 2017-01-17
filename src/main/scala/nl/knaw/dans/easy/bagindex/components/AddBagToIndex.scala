@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.knaw.dans.easy.bagstoreindex.components
+package nl.knaw.dans.easy.bagindex.components
 
-import nl.knaw.dans.easy.bagstoreindex.{ BagId, BaseId }
+import nl.knaw.dans.easy.bagindex.{ BagId, BaseId }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
 

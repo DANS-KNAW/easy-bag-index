@@ -15,16 +15,16 @@
  */
 import javax.servlet.ServletContext
 
-import nl.knaw.dans.easy.bagstoreindex.BagStoreIndexApp
-import nl.knaw.dans.easy.bagstoreindex.service.BagStoreIndexServlet
+import nl.knaw.dans.easy.bagindex.BagIndexApp
+import nl.knaw.dans.easy.bagindex.service.BagIndexServlet
 import org.scalatra.LifeCycle
 
 class ScalatraBootstrap extends LifeCycle {
   override def init(context: ServletContext) {
-    import nl.knaw.dans.easy.bagstoreindex.{CONTEXT_ATTRIBUTE_KEY_BAGSTOREINDEX_APP => appKey}
+    import nl.knaw.dans.easy.bagindex.{CONTEXT_ATTRIBUTE_KEY_BAGINDEX_APP => appKey}
     context.getAttribute(appKey) match {
-      case app: BagStoreIndexApp => context.mount(BagStoreIndexServlet(app), "/")
-      case _ => throw new IllegalStateException("Service not configured: no BagStoreIndex application found")
+      case app: BagIndexApp => context.mount(BagIndexServlet(app), "/")
+      case _ => throw new IllegalStateException("Service not configured: no BagIndex application found")
     }
   }
 }

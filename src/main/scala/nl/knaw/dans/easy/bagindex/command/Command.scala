@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.knaw.dans.easy.bagstoreindex.command
+package nl.knaw.dans.easy.bagindex.command
 
-import nl.knaw.dans.easy.bagstoreindex.{ BagStoreIndexApp, TryExtensions }
+import nl.knaw.dans.easy.bagindex.{ BagIndexApp, TryExtensions }
 
 import scala.language.reflectiveCalls
 import scala.util.{ Failure, Try }
 
-object Command extends App with BagStoreIndexApp {
+object Command extends App with BagIndexApp {
 
   initConnection()
 

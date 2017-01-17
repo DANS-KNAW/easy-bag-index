@@ -21,11 +21,11 @@ import org.joda.time.DateTime
 
 import scala.util.{ Failure, Success, Try }
 
-package object bagstoreindex {
+package object bagindex {
 
   case class BagIdNotFoundException(bagId: BagId) extends Exception(s"The specified bagId ($bagId) does not exist.")
 
-  val CONTEXT_ATTRIBUTE_KEY_BAGSTOREINDEX_APP = "nl.knaw.dans.easy.bagstoreindex.BagStoreIndexApp"
+  val CONTEXT_ATTRIBUTE_KEY_BAGINDEX_APP = "nl.knaw.dans.easy.bagindex.BagIndexApp"
 
   type BagId = UUID
   type BaseId = UUID

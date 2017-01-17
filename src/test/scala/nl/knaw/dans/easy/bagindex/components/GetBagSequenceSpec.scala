@@ -1,14 +1,14 @@
-package nl.knaw.dans.easy.bagstoreindex.components
+package nl.knaw.dans.easy.bagindex.components
 
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagstoreindex.{ BagIdNotFoundException, BagStoreIndexDatabaseFixture }
+import nl.knaw.dans.easy.bagindex.{ BagIdNotFoundException, BagIndexDatabaseFixture }
 import nl.knaw.dans.lib.error._
 import org.joda.time.DateTime
 
 import scala.util.{ Failure, Success }
 
-class GetBagSequenceSpec extends BagStoreIndexDatabaseFixture with GetBagSequence {
+class GetBagSequenceSpec extends BagIndexDatabaseFixture with GetBagSequence {
 
   "getBagSequence" should "return a sequence with only the baseId when there are no child bags declared" in {
     val bagId = UUID.randomUUID()
