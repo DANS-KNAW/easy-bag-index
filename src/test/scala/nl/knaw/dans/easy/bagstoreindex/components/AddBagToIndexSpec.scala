@@ -17,13 +17,13 @@ package nl.knaw.dans.easy.bagstoreindex.components
 
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagstoreindex.{ BagStoreIndexDatabaseFixture, BagIdNotFoundException }
+import nl.knaw.dans.easy.bagstoreindex.{ BagIdNotFoundException, BagStoreIndexDatabaseFixture, Relation }
 
 import scala.util.{ Failure, Success }
 
 class AddBagToIndexSpec extends BagStoreIndexDatabaseFixture with AddBagToIndex {
 
-  def addParent(): UUID = {
+  def addBaseTest(): UUID = {
     val bagId = UUID.randomUUID()
 
     inside(addBase(bagId)) {
@@ -33,69 +33,69 @@ class AddBagToIndexSpec extends BagStoreIndexDatabaseFixture with AddBagToIndex 
     inside(getAllBagRelations) {
       case Success(relations) =>
         relations should have size 1
-        relations.map { case Record(id, parent, _) => (id, parent) } should contain (bagId, bagId)
+        relations.map { case Relation(id, base, _) => (id, base) } should contain (bagId, bagId)
     }
 
     bagId
   }
 
-  def addChildBagId(): (UUID, UUID) = {
-    val parentId = addParent()
+  def addChildBagIdTest(): (UUID, UUID) = {
+    val baseId = addBaseTest()
     val bagId = UUID.randomUUID()
 
-    inside(add(bagId, parentId)) {
-      case Success(superBase) => superBase shouldBe parentId
+    inside(add(bagId, baseId)) {
+      case Success(superBase) => superBase shouldBe baseId
     }
 
     inside(getAllBagRelations) {
       case Success(relations) =>
         relations should have size 2
-        relations.map { case Record(id, parent, _) => (id, parent) } should contain (bagId, parentId)
+        relations.map { case Relation(id, base, _) => (id, base) } should contain (bagId, baseId)
     }
 
-    (bagId, parentId)
+    (bagId, baseId)
   }
 
-  def addChildBagIdWithSuperParent(): (UUID, UUID, UUID) = {
-    val (parentId, superParentId) = addChildBagId()
+  def addChildBagIdWithSuperBaseTest(): (UUID, UUID, UUID) = {
+    val (baseId, superBaseId) = addChildBagIdTest()
     val bagId = UUID.randomUUID()
 
-    inside(add(bagId, parentId)) {
-      case Success(superBase) => superBase shouldBe superParentId
+    inside(add(bagId, baseId)) {
+      case Success(superBase) => superBase shouldBe superBaseId
     }
 
     inside(getAllBagRelations) {
       case Success(relations) =>
         relations should have size 3
-        relations.map { case Record(id, parent, _) => (id, parent) } should contain (bagId, superParentId)
+        relations.map { case Relation(id, base, _) => (id, base) } should contain (bagId, superBaseId)
     }
 
-    (bagId, parentId, superParentId)
+    (bagId, baseId, superBaseId)
   }
 
-  "add" should "put a relation from the bagId to itself in the database when no parent is specified" in {
-    addParent()
+  "add" should "put a relation from the bagId to itself in the database when no base is specified" in {
+    addBaseTest()
   }
 
-  it should "put a relation from the bagId to its parent in the database when the parent exists in the database" in {
-    addChildBagId()
+  it should "put a relation from the bagId to its base in the database when the baseId exists in the database" in {
+    addChildBagIdTest()
   }
 
-  it should "put a relation from the bagId to a superparent in the database when the given parent hase another parent" in {
-    addChildBagIdWithSuperParent()
+  it should "put a relation from the bagId to a super-baseId in the database when the given baseId hase another baseId" in {
+    addChildBagIdWithSuperBaseTest()
   }
 
-  it should "fail with a ParentNotFoundException when the specified parent bagId does not exist in the database" in {
+  it should "fail with a BagIdNotFoundException when the specified baseId does not exist in the database" in {
     val bagId = UUID.randomUUID()
-    val parentId = UUID.randomUUID()
+    val baseId = UUID.randomUUID()
 
-    // assert that the parent is not yet present in the database
+    // assert that the base is not yet present in the database
     inside(getAllBagRelations) {
-      case Success(relations) => relations.map(_.bagId) should not contain parentId
+      case Success(relations) => relations.map(_.bagId) should not contain baseId
     }
 
-    inside(add(bagId, parentId)) {
-      case Failure(BagIdNotFoundException(id)) => id shouldBe parentId
+    inside(add(bagId, baseId)) {
+      case Failure(BagIdNotFoundException(id)) => id shouldBe baseId
     }
   }
 }

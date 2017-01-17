@@ -18,7 +18,7 @@ package nl.knaw.dans.easy.bagstoreindex.components
 import java.sql.{ Connection, DriverManager }
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagstoreindex.{ BagId, BagIdNotFoundException }
+import nl.knaw.dans.easy.bagstoreindex.{ BagId, BagIdNotFoundException, BaseId, Relation }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
@@ -30,14 +30,17 @@ trait Database {
   this: DebugEnhancedLogging =>
   import logger._
 
-  var connection: Connection = _
+  private var connection: Connection = _
 
   val dbDriverClass: String
   val dbUrl: String
   val dbUsername: Option[String]
   val dbPassword: Option[String]
 
-  def initConnection(): Unit = {
+  /**
+   * Establishes the connection with the database
+   */
+  def initConnection(): Try[Unit] = Try {
     info("Creating database connection ...")
 
     Class.forName(dbDriverClass)
@@ -64,13 +67,13 @@ trait Database {
   }
 
   /**
-   * Return the base bagId of the given bagId if the latter exists.
+   * Return the baseId of the given bagId if the latter exists.
    * If the bagId does not exist, a `BagIdNotFoundException` is returned.
    *
    * @param bagId the bagId for which the base bagId needs to be returned
-   * @return the base bagId of the given bagId if it exists; failure otherwise
+   * @return the baseId of the given bagId if it exists; failure otherwise
    */
-  def getBaseBagId(bagId: BagId): Try[BagId] = Try {
+  def getBaseBagId(bagId: BagId): Try[BaseId] = Try {
     trace(bagId)
     val prepStatement = connection.prepareStatement("SELECT base FROM BagRelation WHERE bagId=?;")
     prepStatement.setString(1, bagId.toString)
@@ -84,7 +87,8 @@ trait Database {
     base
   }
 
-  def getBagsWithBase(baseId: BagId): Try[Seq[BagId]] = Try {
+  // TODO test, document and use
+  def getBagsWithBase(baseId: BaseId): Try[Seq[BagId]] = Try {
     trace(baseId)
     val prepStatement = connection.prepareStatement("SELECT bagId FROM BagRelation WHERE baseId=? ORDER BY timestamp;")
     prepStatement.setString(1, baseId.toString)
@@ -98,19 +102,43 @@ trait Database {
   }
 
   /**
+   * Returns a list of all bag relations that are present in the database.
+   * '''Warning:''' this may load large amounts of data into memory.
+   *
+   * @return a list of all bag relations
+   */
+  def getAllBagRelations: Try[List[Relation]] = Try {
+    val statement = connection.createStatement
+    statement.closeOnCompletion()
+    val resultSet = statement.executeQuery("SELECT * FROM BagRelation;")
+
+    val result = Stream.continually(resultSet.next())
+      .takeWhile(b => b)
+      .map(_ => Relation(
+        bagId = UUID.fromString(resultSet.getString("bagId")),
+        baseId = UUID.fromString(resultSet.getString("base")),
+        timestamp = DateTime.parse(resultSet.getString("timestamp"), ISODateTimeFormat.dateTime())))
+      .toList
+
+    resultSet.close()
+
+    result
+  }
+
+  /**
    * Add a bag relation to the database. A bag relation consists of a unique bagId (that is not yet
    * included in the database), a base bagId and a timestamp.
    *
    * @param bagId the unique bag identifier
-   * @param base the base bagId of the bagId
+   * @param baseId the base bagId of the bagId
    * @param timestamp the date/time at which the bag was created
    * @return `Success` if the bag relation was added successfully; `Failure` otherwise
    */
-  def addBagRelation(bagId: BagId, base: BagId, timestamp: DateTime): Try[Unit] = Try {
-    trace((bagId, base, timestamp))
+  def addBagRelation(bagId: BagId, baseId: BaseId, timestamp: DateTime): Try[Unit] = Try {
+    trace((bagId, baseId, timestamp))
     val prepStatement = connection.prepareStatement("INSERT INTO BagRelation VALUES (?, ?, ?);")
     prepStatement.setString(1, bagId.toString)
-    prepStatement.setString(2, base.toString)
+    prepStatement.setString(2, baseId.toString)
     prepStatement.setString(3, timestamp.toString(ISODateTimeFormat.dateTime()))
     prepStatement.closeOnCompletion()
     prepStatement.executeUpdate()

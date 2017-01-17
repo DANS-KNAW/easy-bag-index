@@ -17,7 +17,7 @@ package nl.knaw.dans.easy.bagstoreindex.components
 
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagstoreindex.{ BagIdNotFoundException, BagStoreIndexDatabaseFixture }
+import nl.knaw.dans.easy.bagstoreindex.{ BagIdNotFoundException, BagStoreIndexDatabaseFixture, Relation }
 import nl.knaw.dans.lib.error.TraversableTryExtensions
 import org.joda.time.DateTime
 
@@ -41,7 +41,7 @@ class DatabaseSpec extends BagStoreIndexDatabaseFixture with Database {
     inside(getAllBagRelations) {
       case Success(relations) =>
         bagIds.zip(times)
-          .map { case (bagId, time) => Record(bagId, base, time) }
+          .map { case (bagId, time) => Relation(bagId, base, time) }
           .forall(relations.contains) shouldBe true
     }
   }
@@ -62,7 +62,7 @@ class DatabaseSpec extends BagStoreIndexDatabaseFixture with Database {
     inside(getAllBagRelations) {
       case Success(relations) =>
         relations should have size 1
-        relations.head shouldBe Record(bagId, base, time)
+        relations.head shouldBe Relation(bagId, base, time)
     }
   }
 

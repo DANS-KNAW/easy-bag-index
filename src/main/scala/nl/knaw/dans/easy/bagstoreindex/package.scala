@@ -17,6 +17,8 @@ package nl.knaw.dans.easy
 
 import java.util.{ Properties, UUID }
 
+import org.joda.time.DateTime
+
 import scala.util.{ Failure, Success, Try }
 
 package object bagstoreindex {
@@ -26,6 +28,8 @@ package object bagstoreindex {
   val CONTEXT_ATTRIBUTE_KEY_BAGSTOREINDEX_APP = "nl.knaw.dans.easy.bagstoreindex.BagStoreIndexApp"
 
   type BagId = UUID
+  type BaseId = UUID
+  case class Relation(bagId: BagId, baseId: BaseId, timestamp: DateTime)
 
   object Version {
     def apply(): String = {

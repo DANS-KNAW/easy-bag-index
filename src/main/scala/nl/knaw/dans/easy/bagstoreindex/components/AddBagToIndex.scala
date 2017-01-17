@@ -15,40 +15,40 @@
  */
 package nl.knaw.dans.easy.bagstoreindex.components
 
-import nl.knaw.dans.easy.bagstoreindex.{ BagId, BagIdNotFoundException }
+import nl.knaw.dans.easy.bagstoreindex.{ BagId, BaseId }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
 
-import scala.util.{ Failure, Try }
+import scala.util.Try
 
 trait AddBagToIndex {
   this: Database with DebugEnhancedLogging =>
 
   /**
-   * Inserts a base bagId into the index; that is, the bagId specifies itself as its parent.
+   * Inserts a baseId into the index; that is, the bagId specifies itself as its base.
    *
    * @param bagId the bagId to be added to the index
    * @param timestamp the timestamp corresponding to the bagId
    * @return `Success` if the bagId was added to the index; `Failure` otherwise
    */
-  def addBase(bagId: BagId, timestamp: Option[DateTime] = None): Try[BagId] = {
+  def addBase(bagId: BagId, timestamp: Option[DateTime] = None): Try[BaseId] = {
     trace((bagId, timestamp))
     addBagRelation(bagId, bagId, timestamp.getOrElse(DateTime.now()))
       .map(_ => bagId)
   }
 
   /**
-   * Insert a bagId into the index, given another bagId as its parent.
-   * If the parent is already in the index with another base bagId, this super-parent is used
-   * as the base bagId of the currently added bagId instead.
-   * If the parent does not exist in the index a `BagIdNotFoundException` is returned.
+   * Insert a bagId into the index, given another bagId as its base.
+   * If the baseId is already in the index with another baseId, this ''super-baseId'' is used
+   * as the baseId of the currently added bagId instead.
+   * If the baseId does not exist in the index a `BagIdNotFoundException` is returned.
    *
    * @param bagId the bagId to be added to the index
    * @param baseId the base of this bagId
    * @param timestamp the timestamp corresponding to the bagId
-   * @return the bagId of the super-base if the bagId was added to the index; `Failure` otherwise
+   * @return the baseId of the super-base if the bagId was added to the index; `Failure` otherwise
    */
-  def add(bagId: BagId, baseId: BagId, timestamp: Option[DateTime] = None): Try[BagId] = {
+  def add(bagId: BagId, baseId: BaseId, timestamp: Option[DateTime] = None): Try[BaseId] = {
     trace((bagId, baseId, timestamp))
     for {
       superBase <- getBaseBagId(baseId)

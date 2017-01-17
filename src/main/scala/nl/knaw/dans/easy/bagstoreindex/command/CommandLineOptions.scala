@@ -17,7 +17,7 @@ package nl.knaw.dans.easy.bagstoreindex.command
 
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagstoreindex.Version
+import nl.knaw.dans.easy.bagstoreindex.{ BagId, BaseId, Version }
 import org.apache.commons.configuration.PropertiesConfiguration
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
@@ -38,7 +38,7 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
       |Usage:
       |
       |$printedName \\
-      |${_________}  | add --parent|-p --timestamp|-t <bagId>
+      |${_________}  | add --base|-b --timestamp|-t <bagId>
       |
       |Options:
     """.stripMargin)
@@ -48,11 +48,11 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
 
   val add = new Subcommand("add") {
     descr("Adds a bag identifier to the index")
-    val bagId: ScallopOption[UUID] = trailArg[UUID](name = "bagId",
+    val bagId: ScallopOption[BagId] = trailArg[UUID](name = "bagId",
       descr = "the bag identifier to be added")
-    val parentId: ScallopOption[UUID] = opt[UUID](name = "parent",
-      descr = "the bag identifier of the parent bag",
-      short = 'p')
+    val baseId: ScallopOption[BaseId] = opt[UUID](name = "base",
+      descr = "the bag identifier of the base bag",
+      short = 'b')
     val timestamp: ScallopOption[DateTime] = opt[DateTime](name = "timestamp",
       descr = "the timestamp of the creation of the bag",
       short = 't')
