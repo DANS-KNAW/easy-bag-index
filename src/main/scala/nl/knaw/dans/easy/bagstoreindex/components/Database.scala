@@ -18,11 +18,12 @@ package nl.knaw.dans.easy.bagstoreindex.components
 import java.sql.{ Connection, DriverManager }
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagstoreindex.BagId
+import nl.knaw.dans.easy.bagstoreindex.{ BagId, BagIdNotFoundException }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 
+import scala.collection.immutable.Seq
 import scala.util.Try
 
 trait Database {
@@ -63,23 +64,37 @@ trait Database {
   }
 
   /**
-   * Return the base bagId of the given bagId if the latter exists (wrapped in an `Option`).
-   * Otherwise a `None` is returned.
+   * Return the base bagId of the given bagId if the latter exists.
+   * If the bagId does not exist, a `BagIdNotFoundException` is returned.
    *
    * @param bagId the bagId for which the base bagId needs to be returned
-   * @return the base bagId of the given bagId
+   * @return the base bagId of the given bagId if it exists; failure otherwise
    */
-  def getBaseBagId(bagId: BagId) = Try {
+  def getBaseBagId(bagId: BagId): Try[BagId] = Try {
     trace(bagId)
     val prepStatement = connection.prepareStatement("SELECT base FROM BagRelation WHERE bagId=?;")
     prepStatement.setString(1, bagId.toString)
     prepStatement.closeOnCompletion()
     val resultSet = prepStatement.executeQuery()
-    val base = Option(resultSet.next())
-      .filter(b => b)
-      .map(_ => UUID.fromString(resultSet.getString("base")))
+    val base = if (resultSet.next())
+                 UUID.fromString(resultSet.getString("base"))
+               else
+                 throw BagIdNotFoundException(bagId)
     resultSet.close()
     base
+  }
+
+  def getBagsWithBase(baseId: BagId): Try[Seq[BagId]] = Try {
+    trace(baseId)
+    val prepStatement = connection.prepareStatement("SELECT bagId FROM BagRelation WHERE baseId=? ORDER BY timestamp;")
+    prepStatement.setString(1, baseId.toString)
+    prepStatement.closeOnCompletion()
+    val resultSet = prepStatement.executeQuery()
+    val result: Seq[BagId] = Stream.continually(resultSet.next())
+      .takeWhile(b => b)
+      .map(_ => UUID.fromString(resultSet.getString("bagId")))
+    resultSet.close()
+    result
   }
 
   /**

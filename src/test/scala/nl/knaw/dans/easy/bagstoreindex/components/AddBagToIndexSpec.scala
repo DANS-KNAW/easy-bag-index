@@ -17,7 +17,7 @@ package nl.knaw.dans.easy.bagstoreindex.components
 
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagstoreindex.{ BagStoreIndexDatabaseFixture, ParentNotFoundException }
+import nl.knaw.dans.easy.bagstoreindex.{ BagStoreIndexDatabaseFixture, BagIdNotFoundException }
 
 import scala.util.{ Failure, Success }
 
@@ -82,11 +82,11 @@ class AddBagToIndexSpec extends BagStoreIndexDatabaseFixture with AddBagToIndex 
 
     // assert that the parent is not yet present in the database
     inside(getAllBagRelations) {
-      case Success(relations) => relations.map { case Record(id, _, _) => id } should not contain parentId
+      case Success(relations) => relations.map(_.bagId) should not contain parentId
     }
 
     inside(add(bagId, parentId)) {
-      case Failure(ParentNotFoundException(id)) => id shouldBe parentId
+      case Failure(BagIdNotFoundException(id)) => id shouldBe parentId
     }
   }
 }

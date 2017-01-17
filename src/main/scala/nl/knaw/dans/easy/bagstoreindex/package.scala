@@ -21,7 +21,7 @@ import scala.util.{ Failure, Success, Try }
 
 package object bagstoreindex {
 
-  case class ParentNotFoundException(parentBagId: BagId) extends Exception(s"The specified parent bagId ($parentBagId) does not exist.")
+  case class BagIdNotFoundException(bagId: BagId) extends Exception(s"The specified bagId ($bagId) does not exist.")
 
   val CONTEXT_ATTRIBUTE_KEY_BAGSTOREINDEX_APP = "nl.knaw.dans.easy.bagstoreindex.BagStoreIndexApp"
 

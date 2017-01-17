@@ -17,7 +17,7 @@ package nl.knaw.dans.easy.bagstoreindex.components
 
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagstoreindex.BagStoreIndexDatabaseFixture
+import nl.knaw.dans.easy.bagstoreindex.{ BagIdNotFoundException, BagStoreIndexDatabaseFixture }
 import nl.knaw.dans.lib.error.TraversableTryExtensions
 import org.joda.time.DateTime
 
@@ -81,12 +81,12 @@ class DatabaseSpec extends BagStoreIndexDatabaseFixture with Database {
 
     for (bagId <- bagIds) {
       inside(getBaseBagId(bagId)) {
-        case Success(Some(uuid)) => uuid shouldBe base
+        case Success(baseId) => baseId shouldBe base
       }
     }
   }
 
-  it should "return a Success with a None inside if the bagId is not present in the database" in {
+  it should "return a Failure with a BagIdNotFoundException inside if the bagId is not present in the database" in {
     val bagId = UUID.randomUUID()
     val base = UUID.randomUUID()
     val time = DateTime.now()
@@ -95,7 +95,7 @@ class DatabaseSpec extends BagStoreIndexDatabaseFixture with Database {
 
     val someOtherBagId = UUID.randomUUID()
     inside(getBaseBagId(someOtherBagId)) {
-      case Success(maybeBase) => maybeBase shouldBe empty
+      case Failure(BagIdNotFoundException(id)) => id shouldBe someOtherBagId
     }
   }
 }

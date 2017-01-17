@@ -15,7 +15,7 @@
  */
 package nl.knaw.dans.easy.bagstoreindex.components
 
-import nl.knaw.dans.easy.bagstoreindex.{ BagId, ParentNotFoundException }
+import nl.knaw.dans.easy.bagstoreindex.{ BagId, BagIdNotFoundException }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
 
@@ -40,18 +40,19 @@ trait AddBagToIndex {
    * Insert a bagId into the index, given another bagId as its parent.
    * If the parent is already in the index with another base bagId, this super-parent is used
    * as the base bagId of the currently added bagId instead.
-   * If the parent does not exist in the index a `ParentNotFoundException` is returned.
+   * If the parent does not exist in the index a `BagIdNotFoundException` is returned.
    *
    * @param bagId the bagId to be added to the index
    * @param baseId the base of this bagId
    * @param timestamp the timestamp corresponding to the bagId
    * @return `Success` if the bagId was added to the index; `Failure` otherwise
    */
+  // TODO return superBaseId instead of Unit
   def add(bagId: BagId, baseId: BagId, timestamp: Option[DateTime] = None): Try[Unit] = {
     trace((bagId, baseId, timestamp))
     for {
-      maybeSuperBase <- getBaseBagId(baseId)
-      _ <- maybeSuperBase.map(addBagRelation(bagId, _, timestamp.getOrElse(DateTime.now()))).getOrElse(Failure(ParentNotFoundException(baseId)))
+      superBase <- getBaseBagId(baseId)
+      _ <- addBagRelation(bagId, superBase, timestamp.getOrElse(DateTime.now()))
     } yield ()
   }
 }
