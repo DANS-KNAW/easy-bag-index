@@ -38,8 +38,8 @@ trait BagIndexDatabaseFixture extends TestSupportFixture
 
     val query = Source.fromFile(getClass.getClassLoader.getResource("database/bag-index.sql").toURI).mkString
     val statement = con.createStatement
-    statement.closeOnCompletion()
-    statement.execute(query)
+    statement.executeUpdate(query)
+    statement.close()
 
     con
   }

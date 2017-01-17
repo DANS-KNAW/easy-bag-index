@@ -38,8 +38,10 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
       .map { case (bagId, time) => addBagRelation(bagId, baseId, time) }
       .collectResults shouldBe a[Success[_]]
 
+    val rel1 :: rel2 :: rels = bagIds.zip(times).map { case (bagId, time) => Relation(bagId, baseId, time) }
+
     inside(getAllBagRelations) {
-      case Success(relations) => bagIds.zip(times).map { case (bagId, time) => Relation(bagId, baseId, time) } should contain theSameElementsAs relations
+      case Success(relations) => relations should contain allOf(rel1, rel2, rels: _*)
     }
   }
 
@@ -57,7 +59,7 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     }
 
     inside(getAllBagRelations) {
-      case Success(relations) => relations should (have size 1 and contain only Relation(bagId, baseId, time))
+      case Success(relations) => relations should contain (Relation(bagId, baseId, time))
     }
   }
 

@@ -31,7 +31,7 @@ class AddBagToIndexSpec extends BagIndexDatabaseFixture with AddBagToIndex {
     }
 
     inside(getAllBagRelations) {
-      case Success(relations) => relations.map { case Relation(id, base, _) => (id, base) } should (have size 1 and contain only ((bagId, bagId)))
+      case Success(relations) => relations.map { case Relation(id, base, _) => (id, base) } should contain ((bagId, bagId))
     }
 
     bagId
@@ -46,7 +46,7 @@ class AddBagToIndexSpec extends BagIndexDatabaseFixture with AddBagToIndex {
     }
 
     inside(getAllBagRelations) {
-      case Success(relations) => relations.map { case Relation(id, base, _) => (id, base) } should (have size 2 and contain (bagId, baseId))
+      case Success(relations) => relations.map { case Relation(id, base, _) => (id, base) } should contain ((bagId, baseId))
     }
 
     (bagId, baseId)
@@ -61,7 +61,7 @@ class AddBagToIndexSpec extends BagIndexDatabaseFixture with AddBagToIndex {
     }
 
     inside(getAllBagRelations) {
-      case Success(relations) => relations.map { case Relation(id, base, _) => (id, base) } should (have size 3 and contain (bagId, superBaseId))
+      case Success(relations) => relations.map { case Relation(id, base, _) => (id, base) } should contain ((bagId, superBaseId))
     }
 
     (bagId, baseId, superBaseId)
