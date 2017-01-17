@@ -25,7 +25,10 @@ trait TestSupportFixture extends FlatSpec
   with OneInstancePerTest
   with Inside {
 
-  val testDir: Path = Paths.get(s"target/test/${ getClass.getSimpleName }").toAbsolutePath
-  FileUtils.deleteQuietly(testDir.toFile)
-  Files.createDirectories(testDir)
+  lazy val testDir: Path = {
+    val path = Paths.get(s"target/test/${ getClass.getSimpleName }").toAbsolutePath
+    FileUtils.deleteQuietly(path.toFile)
+    Files.createDirectories(path)
+    path
+  }
 }

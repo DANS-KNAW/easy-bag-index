@@ -38,19 +38,29 @@ trait Database {
   val dbPassword: Option[String]
 
   /**
+   * Hook for creating a connection. If a username and password is provided, these will be taken
+   * into account when creating the connection; otherwise the connection is created without
+   * username and password.
+   *
+   * @return the connection
+   */
+  protected def createConnection: Connection = {
+    val optConn = for {
+      username <- dbUsername
+      password <- dbPassword
+    } yield DriverManager.getConnection(dbUrl, username, password)
+
+    optConn.getOrElse(DriverManager.getConnection(dbUrl))
+  }
+
+  /**
    * Establishes the connection with the database
    */
   def initConnection(): Try[Unit] = Try {
     info("Creating database connection ...")
 
     Class.forName(dbDriverClass)
-
-    val optConn = for {
-      username <- dbUsername
-      password <- dbPassword
-    } yield DriverManager.getConnection(dbUrl, username, password)
-
-    connection = optConn.getOrElse(DriverManager.getConnection(dbUrl))
+    connection = createConnection
 
     info(s"Database connected with $dbUrl.")
   }

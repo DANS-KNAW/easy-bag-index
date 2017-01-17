@@ -28,7 +28,7 @@ fi
 
 mkdir -p $TEMPDIR
 cp -r src/test/resources/bag-store $TEMPDIR/bag-store
-cp src/test/resources/database/empty-bag-index.db $TEMPDIR/bag-index.db # TODO make sql script for this instead!
+sqlite3 $TEMPDIR/bag-index.db < src/test/resources/database/bag-index.sql
 touch $TEMPDIR/easy-bag-index.log
 chmod -R 777 $TEMPDIR
 
