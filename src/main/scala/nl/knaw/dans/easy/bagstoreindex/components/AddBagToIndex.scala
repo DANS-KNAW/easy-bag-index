@@ -31,9 +31,10 @@ trait AddBagToIndex {
    * @param timestamp the timestamp corresponding to the bagId
    * @return `Success` if the bagId was added to the index; `Failure` otherwise
    */
-  def addBase(bagId: BagId, timestamp: Option[DateTime] = None): Try[Unit] = {
+  def addBase(bagId: BagId, timestamp: Option[DateTime] = None): Try[BagId] = {
     trace((bagId, timestamp))
     addBagRelation(bagId, bagId, timestamp.getOrElse(DateTime.now()))
+      .map(_ => bagId)
   }
 
   /**
@@ -45,14 +46,13 @@ trait AddBagToIndex {
    * @param bagId the bagId to be added to the index
    * @param baseId the base of this bagId
    * @param timestamp the timestamp corresponding to the bagId
-   * @return `Success` if the bagId was added to the index; `Failure` otherwise
+   * @return the bagId of the super-base if the bagId was added to the index; `Failure` otherwise
    */
-  // TODO return superBaseId instead of Unit
-  def add(bagId: BagId, baseId: BagId, timestamp: Option[DateTime] = None): Try[Unit] = {
+  def add(bagId: BagId, baseId: BagId, timestamp: Option[DateTime] = None): Try[BagId] = {
     trace((bagId, baseId, timestamp))
     for {
       superBase <- getBaseBagId(baseId)
       _ <- addBagRelation(bagId, superBase, timestamp.getOrElse(DateTime.now()))
-    } yield ()
+    } yield superBase
   }
 }

@@ -35,8 +35,7 @@ object Command extends App with BagStoreIndexApp {
       val parentBagId = cmd.parentId.toOption
       val timestamp = cmd.timestamp.toOption
 
-      // TODO better info teruggeven wanneer sprake is van een super-base-bagId
-      parentBagId.map(base => add(bagId, base, timestamp).map(_ => s"Added bagId $bagId with base $base"))
+      parentBagId.map(base => add(bagId, base, timestamp).map(superBase => s"Added bagId $bagId with base $superBase"))
         .getOrElse(addBase(bagId, timestamp).map(_ => s"Added bagId $bagId as base"))
     case _ => throw new IllegalArgumentException(s"Unknown command: ${opts.subcommand}")
       Try { "Unknown command" }

@@ -25,7 +25,10 @@ class AddBagToIndexSpec extends BagStoreIndexDatabaseFixture with AddBagToIndex 
 
   def addParent(): UUID = {
     val bagId = UUID.randomUUID()
-    addBase(bagId) shouldBe a[Success[_]]
+
+    inside(addBase(bagId)) {
+      case Success(superBase) => superBase shouldBe bagId
+    }
 
     inside(getAllBagRelations) {
       case Success(relations) =>
@@ -39,7 +42,10 @@ class AddBagToIndexSpec extends BagStoreIndexDatabaseFixture with AddBagToIndex 
   def addChildBagId(): (UUID, UUID) = {
     val parentId = addParent()
     val bagId = UUID.randomUUID()
-    add(bagId, parentId) shouldBe a[Success[_]]
+
+    inside(add(bagId, parentId)) {
+      case Success(superBase) => superBase shouldBe parentId
+    }
 
     inside(getAllBagRelations) {
       case Success(relations) =>
@@ -53,7 +59,10 @@ class AddBagToIndexSpec extends BagStoreIndexDatabaseFixture with AddBagToIndex 
   def addChildBagIdWithSuperParent(): (UUID, UUID, UUID) = {
     val (parentId, superParentId) = addChildBagId()
     val bagId = UUID.randomUUID()
-    add(bagId, parentId) shouldBe a[Success[_]]
+
+    inside(add(bagId, parentId)) {
+      case Success(superBase) => superBase shouldBe superParentId
+    }
 
     inside(getAllBagRelations) {
       case Success(relations) =>
