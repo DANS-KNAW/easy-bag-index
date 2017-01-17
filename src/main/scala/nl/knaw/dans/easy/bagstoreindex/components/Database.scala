@@ -87,27 +87,33 @@ trait Database {
     base
   }
 
-  // TODO test, document and use
-  def getBagsWithBase(baseId: BaseId): Try[Seq[BagId]] = Try {
+  /**
+   * Returns a sequence of all bagIds that have the given baseId as their base, ordered by timestamp.
+   *
+   * @param baseId the baseId used during this search
+   * @return a sequence of all bagIds with a given baseId
+   */
+  def getAllBagsWithBase(baseId: BaseId): Try[Seq[BagId]] = Try {
     trace(baseId)
-    val prepStatement = connection.prepareStatement("SELECT bagId FROM BagRelation WHERE baseId=? ORDER BY timestamp;")
+    val prepStatement = connection.prepareStatement("SELECT bagId FROM BagRelation WHERE base=? ORDER BY timestamp;")
     prepStatement.setString(1, baseId.toString)
     prepStatement.closeOnCompletion()
     val resultSet = prepStatement.executeQuery()
     val result: Seq[BagId] = Stream.continually(resultSet.next())
       .takeWhile(b => b)
       .map(_ => UUID.fromString(resultSet.getString("bagId")))
+      .toList
     resultSet.close()
     result
   }
 
   /**
-   * Returns a list of all bag relations that are present in the database.
+   * Returns a sequence of all bag relations that are present in the database.
    * '''Warning:''' this may load large amounts of data into memory.
    *
    * @return a list of all bag relations
    */
-  def getAllBagRelations: Try[List[Relation]] = Try {
+  def getAllBagRelations: Try[Seq[Relation]] = Try {
     val statement = connection.createStatement
     statement.closeOnCompletion()
     val resultSet = statement.executeQuery("SELECT * FROM BagRelation;")

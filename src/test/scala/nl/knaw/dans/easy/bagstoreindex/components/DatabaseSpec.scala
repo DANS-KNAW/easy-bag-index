@@ -17,7 +17,7 @@ package nl.knaw.dans.easy.bagstoreindex.components
 
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagstoreindex.{ BagIdNotFoundException, BagStoreIndexDatabaseFixture, Relation }
+import nl.knaw.dans.easy.bagstoreindex.{ BagId, BagIdNotFoundException, BagStoreIndexDatabaseFixture, BaseId, Relation }
 import nl.knaw.dans.lib.error.TraversableTryExtensions
 import org.joda.time.DateTime
 
@@ -27,7 +27,7 @@ class DatabaseSpec extends BagStoreIndexDatabaseFixture with Database {
 
   "addBagRelation" should "insert a new bag relation into the database" in {
     val bagIds = List.fill(3)(UUID.randomUUID())
-    val base = bagIds.head
+    val baseId = bagIds.head
     val times = List(
       DateTime.parse("1992-07-30T16:00:00"),
       DateTime.parse("2004-01-01"),
@@ -35,24 +35,21 @@ class DatabaseSpec extends BagStoreIndexDatabaseFixture with Database {
     )
 
     bagIds.zip(times)
-      .map { case (bagId, time) => addBagRelation(bagId, base, time) }
+      .map { case (bagId, time) => addBagRelation(bagId, baseId, time) }
       .collectResults shouldBe a[Success[_]]
 
     inside(getAllBagRelations) {
-      case Success(relations) =>
-        bagIds.zip(times)
-          .map { case (bagId, time) => Relation(bagId, base, time) }
-          .forall(relations.contains) shouldBe true
+      case Success(relations) => bagIds.zip(times).map { case (bagId, time) => Relation(bagId, baseId, time) } should contain theSameElementsAs relations
     }
   }
 
   it should "fail if inserting a bag relation twice" in {
     val bagId = UUID.randomUUID()
-    val base = UUID.randomUUID()
+    val baseId = UUID.randomUUID()
     val time = DateTime.now()
 
-    val result1 = addBagRelation(bagId, base, time)
-    val result2 = addBagRelation(bagId, base, time)
+    val result1 = addBagRelation(bagId, baseId, time)
+    val result2 = addBagRelation(bagId, baseId, time)
 
     result1 shouldBe a[Success[_]]
     inside(result2) {
@@ -60,15 +57,13 @@ class DatabaseSpec extends BagStoreIndexDatabaseFixture with Database {
     }
 
     inside(getAllBagRelations) {
-      case Success(relations) =>
-        relations should have size 1
-        relations.head shouldBe Relation(bagId, base, time)
+      case Success(relations) => relations should (have size 1 and contain only Relation(bagId, baseId, time))
     }
   }
 
   "getBaseBagId" should "return the base of a specific bagId" in {
     val bagIds = List.fill(3)(UUID.randomUUID())
-    val base = bagIds.head
+    val baseId = bagIds.head
     val times = List(
       DateTime.parse("1992-07-30T16:00:00"),
       DateTime.parse("2004-01-01"),
@@ -76,26 +71,71 @@ class DatabaseSpec extends BagStoreIndexDatabaseFixture with Database {
     )
 
     bagIds.zip(times)
-      .map { case (bagId, time) => addBagRelation(bagId, base, time) }
+      .map { case (bagId, time) => addBagRelation(bagId, baseId, time) }
       .collectResults shouldBe a[Success[_]]
 
     for (bagId <- bagIds) {
       inside(getBaseBagId(bagId)) {
-        case Success(baseId) => baseId shouldBe base
+        case Success(base) => base shouldBe baseId
       }
     }
   }
 
   it should "return a Failure with a BagIdNotFoundException inside if the bagId is not present in the database" in {
+    // Note: the database is empty at this point!
+    val someBagId = UUID.randomUUID()
+    inside(getBaseBagId(someBagId)) {
+      case Failure(BagIdNotFoundException(id)) => id shouldBe someBagId
+    }
+  }
+
+  "getAllBagsWithBase" should "return a sequence with only the baseId when there are no child bags declared" in {
     val bagId = UUID.randomUUID()
-    val base = UUID.randomUUID()
     val time = DateTime.now()
 
-    addBagRelation(bagId, base, time) shouldBe a[Success[_]]
+    addBagRelation(bagId, bagId, time) shouldBe a[Success[_]]
 
-    val someOtherBagId = UUID.randomUUID()
-    inside(getBaseBagId(someOtherBagId)) {
-      case Failure(BagIdNotFoundException(id)) => id shouldBe someOtherBagId
+    inside(getAllBagsWithBase(bagId)) {
+      case Success(ids) => ids should (have size 1 and contain only bagId)
+    }
+  }
+
+  it should "return a sequence with all bagIds with a certain baseId" in {
+    val bagIds1 = List.fill(3)(UUID.randomUUID())
+    val baseId1 = bagIds1.head
+    val times1 = List(
+      DateTime.parse("1992-07-30T16:00:00"),
+      DateTime.parse("2004-01-01"),
+      DateTime.now()
+    )
+
+    val bagIds2 = List.fill(5)(UUID.randomUUID())
+    val baseId2 = bagIds2.head
+    val times2 = List(
+      DateTime.parse("2001-09-11"),
+      DateTime.parse("2017"),
+      DateTime.parse("2017").plusDays(2),
+      DateTime.parse("2017-03-09"),
+      DateTime.parse("2018")
+    )
+
+    List(
+      (bagIds1.zip(times1), baseId1),
+      (bagIds2.zip(times2), baseId2))
+      .flatMap { case (xs, base) => xs.map { case (bagId, time) => addBagRelation(bagId, base, time) }}
+      .collectResults shouldBe a[Success[_]]
+
+    def test(baseId: BaseId, expected: Seq[BagId]) = {
+      inside(getAllBagsWithBase(baseId)) {
+        case Success(ids) => ids should (have size expected.size and contain theSameElementsAs expected)
+      }
+    }
+
+    inside(getAllBagsWithBase(baseId1)) {
+      case Success(ids) => ids should (have size 3 and contain theSameElementsAs bagIds1)
+    }
+    inside(getAllBagsWithBase(baseId2)) {
+      case Success(ids) => ids should (have size 5 and contain theSameElementsAs bagIds2)
     }
   }
 }
