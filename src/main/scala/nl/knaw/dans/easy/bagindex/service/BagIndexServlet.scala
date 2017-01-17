@@ -16,10 +16,13 @@
 package nl.knaw.dans.easy.bagindex.service
 
 import java.net.URI
+import java.util.UUID
 
 import nl.knaw.dans.easy.bagindex.BagIndexApp
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import org.scalatra.{ Ok, ScalatraServlet }
+import org.scalatra.{ InternalServerError, NotFound, Ok, ScalatraServlet }
+import nl.knaw.dans.easy.bagindex._
+import org.joda.time.DateTime
 
 case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugEnhancedLogging {
   import app._
@@ -27,6 +30,20 @@ case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugE
 
   get("/") {
     Ok("Hello world")
+  }
+
+  get("/bag-sequence") {
+    val contains = params("contains")
+    app.getBagSequence(UUID.fromString(contains))
+      .map(ids => Ok(ids.mkString("\n")))
+      .onError {
+        case e: BagIdNotFoundException =>
+          logger.error(e.getMessage, e)
+          NotFound(e.getMessage)
+        case e =>
+          logger.error("Unexpected type of failure", e)
+          InternalServerError(s"[${DateTime.now}] Unexpected type of failure. Please consult the logs")
+      }
   }
 
   // get: http://bag-index/bag-sequence?contains=<bagId>
