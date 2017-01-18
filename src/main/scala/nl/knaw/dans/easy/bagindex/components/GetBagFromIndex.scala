@@ -1,6 +1,6 @@
 package nl.knaw.dans.easy.bagindex.components
 
-import nl.knaw.dans.easy.bagindex.{ BagId, Relation }
+import nl.knaw.dans.easy.bagindex.{ BagId, BagRelation }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
 import scala.util.Try
@@ -10,7 +10,7 @@ trait GetBagFromIndex {
 
   /**
    * Returns a sequence of all bagIds that are in the same bag sequence as the given bagId.
-   * The resulting sequence is sorted by the timestamp of the bag creation.
+   * The resulting sequence is sorted by the 'created' timestamp.
    * If the given bagId is not in the database, a `BagIdNotFoundException` will be returned.
    *
    * @param bagId the bagId of which the whole sequence is requested
@@ -31,7 +31,7 @@ trait GetBagFromIndex {
    * @param bagId the bagId corresponding to the relation
    * @return the relation data of the given bagId
    */
-  def getBagInfo(bagId: BagId): Try[Relation] = {
+  def getBagInfo(bagId: BagId): Try[BagRelation] = {
     trace(bagId)
     getBagRelation(bagId)
   }

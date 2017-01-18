@@ -38,7 +38,7 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
       |Usage:
       |
       |$printedName \\
-      |${_________}  | add --base|-b --timestamp|-t <bagId>
+      |${_________}  | add --base|-b --created|-c <bagId>
       |
       |Options:
     """.stripMargin)
@@ -53,9 +53,9 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
     val baseId: ScallopOption[BaseId] = opt[UUID](name = "base",
       descr = "the bag identifier of the base bag",
       short = 'b')
-    val timestamp: ScallopOption[DateTime] = opt[DateTime](name = "timestamp",
-      descr = "the timestamp of the creation of the bag",
-      short = 't')
+    val created: ScallopOption[DateTime] = opt[DateTime](name = "created",
+      descr = "the created of the creation of the bag",
+      short = 'c')
   }
 
   addSubcommand(add)

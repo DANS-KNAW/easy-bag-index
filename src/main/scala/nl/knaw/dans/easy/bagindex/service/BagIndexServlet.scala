@@ -38,7 +38,7 @@ case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugE
   }
 
   // GET: http://bag-index/bag-sequence?contains=<bagId>
-  // given a bagId, return a list of bagIds that have the same baseId, ordered by timestamp
+  // given a bagId, return a list of bagIds that have the same baseId, ordered by the 'created' timestamp
   // the data is returned as a newline separated (text/plain) String
   get("/bag-sequence") {
     contentType = "text/plain"
@@ -61,7 +61,7 @@ case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugE
               <bag-info>
                 <bag-id>{relation.bagId.toString}</bag-id>
                 <base-id>{relation.baseId.toString}</base-id>
-                <timestamp>{relation.timestamp.toString(ISODateTimeFormat.dateTime())}</timestamp>
+                <created>{relation.created.toString(ISODateTimeFormat.dateTime())}</created>
               </bag-info>
               // @formatter:on
             }
@@ -72,7 +72,7 @@ case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugE
               "bag-info" -> {
                 ("bag-id" -> relation.bagId.toString) ~
                 ("base-id" -> relation.baseId.toString) ~
-                ("timestamp" -> relation.timestamp.toString(ISODateTimeFormat.dateTime()))
+                ("created" -> relation.created.toString(ISODateTimeFormat.dateTime()))
               }
               // @formatter:on
             })
@@ -82,10 +82,8 @@ case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugE
   }
 
   // TODO PUT: http://bag-index/bags/<bagId>
-  // get the bag with the given bagId from the bag-store, read bag-info.txt and get the base and timestamp properties
+  // get the bag with the given bagId from the bag-store, read bag-info.txt and get the base and 'created' timestamp properties
   // based on this, add a record to the index/database
-
-  // TODO rename 'timestamp' -> 'created'
 
   // TODO (low prio) zelfde interface in cmd als in servlet
 

@@ -33,10 +33,10 @@ object Command extends App with BagIndexApp {
     case Some(cmd @ opts.add) =>
       val bagId = cmd.bagId()
       val maybeBaseId = cmd.baseId.toOption
-      val maybeTimestamp = cmd.timestamp.toOption
+      val maybeCreated = cmd.created.toOption
 
-      maybeBaseId.map(base => add(bagId, base, maybeTimestamp).map(superBase => s"Added bagId $bagId with base $superBase"))
-        .getOrElse(addBase(bagId, maybeTimestamp).map(_ => s"Added bagId $bagId as base"))
+      maybeBaseId.map(base => add(bagId, base, maybeCreated).map(superBase => s"Added bagId $bagId with base $superBase"))
+        .getOrElse(addBase(bagId, maybeCreated).map(_ => s"Added bagId $bagId as base"))
     case _ => Failure(new IllegalArgumentException(s"Unknown command: ${opts.subcommand}"))
   }
 

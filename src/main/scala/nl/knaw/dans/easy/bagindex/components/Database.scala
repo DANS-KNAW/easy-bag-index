@@ -18,7 +18,7 @@ package nl.knaw.dans.easy.bagindex.components
 import java.sql.{ Connection, DriverManager }
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagindex.{ BagId, BagIdNotFoundException, BaseId, Relation }
+import nl.knaw.dans.easy.bagindex.{ BagId, BagIdNotFoundException, BaseId, BagRelation }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
@@ -103,7 +103,7 @@ trait Database {
   }
 
   /**
-   * Returns a sequence of all bagIds that have the given baseId as their base, ordered by timestamp.
+   * Returns a sequence of all bagIds that have the given baseId as their base, ordered by the 'created' timestamp.
    *
    * @param baseId the baseId used during this search
    * @return a sequence of all bagIds with a given baseId
@@ -112,7 +112,7 @@ trait Database {
     trace(baseId)
 
     val resultSet = for {
-      prepStatement <- managed(connection.prepareStatement("SELECT bagId FROM BagRelation WHERE base=? ORDER BY timestamp;"))
+      prepStatement <- managed(connection.prepareStatement("SELECT bagId FROM BagRelation WHERE base=? ORDER BY created;"))
       _ = prepStatement.setString(1, baseId.toString)
       resultSet <- managed(prepStatement.executeQuery())
     } yield resultSet
@@ -132,7 +132,7 @@ trait Database {
    * @param bagId the bagId corresponding to the relation
    * @return the relation data of the given bagId
    */
-  def getBagRelation(bagId: BagId): Try[Relation] = {
+  def getBagRelation(bagId: BagId): Try[BagRelation] = {
     trace(bagId)
 
     val resultSet = for {
@@ -144,10 +144,10 @@ trait Database {
     resultSet
       .map(result =>
         if (result.next())
-          Relation(
+          BagRelation(
             bagId = UUID.fromString(result.getString("bagId")),
             baseId = UUID.fromString(result.getString("base")),
-            timestamp = DateTime.parse(result.getString("timestamp"), ISODateTimeFormat.dateTime()))
+            created = DateTime.parse(result.getString("created"), ISODateTimeFormat.dateTime()))
         else
           throw BagIdNotFoundException(bagId))
       .tried
@@ -159,7 +159,7 @@ trait Database {
    *
    * @return a list of all bag relations
    */
-  def getAllBagRelations: Try[Seq[Relation]] = {
+  def getAllBagRelations: Try[Seq[BagRelation]] = {
     val resultSet = for {
       statement <- managed(connection.createStatement)
       resultSet <- managed(statement.executeQuery("SELECT * FROM BagRelation;"))
@@ -168,31 +168,31 @@ trait Database {
     resultSet
       .map(result => Stream.continually(result.next())
         .takeWhile(b => b)
-        .map(_ => Relation(
+        .map(_ => BagRelation(
           bagId = UUID.fromString(result.getString("bagId")),
           baseId = UUID.fromString(result.getString("base")),
-          timestamp = DateTime.parse(result.getString("timestamp"), ISODateTimeFormat.dateTime())))
+          created = DateTime.parse(result.getString("created"), ISODateTimeFormat.dateTime())))
         .toList)
       .tried
   }
 
   /**
    * Add a bag relation to the database. A bag relation consists of a unique bagId (that is not yet
-   * included in the database), a base bagId and a timestamp.
+   * included in the database), a base bagId and a 'created' timestamp.
    *
    * @param bagId the unique bag identifier
    * @param baseId the base bagId of the bagId
-   * @param timestamp the date/time at which the bag was created
+   * @param created the date/time at which the bag was created
    * @return `Success` if the bag relation was added successfully; `Failure` otherwise
    */
-  def addBagRelation(bagId: BagId, baseId: BaseId, timestamp: DateTime): Try[Unit] = {
-    trace((bagId, baseId, timestamp))
+  def addBagRelation(bagId: BagId, baseId: BaseId, created: DateTime): Try[Unit] = {
+    trace((bagId, baseId, created))
 
     managed(connection.prepareStatement("INSERT INTO BagRelation VALUES (?, ?, ?);"))
       .map(prepStatement => {
         prepStatement.setString(1, bagId.toString)
         prepStatement.setString(2, baseId.toString)
-        prepStatement.setString(3, timestamp.toString(ISODateTimeFormat.dateTime()))
+        prepStatement.setString(3, created.toString(ISODateTimeFormat.dateTime()))
         prepStatement.executeUpdate()
       })
       .tried
