@@ -118,6 +118,29 @@ trait Database {
   }
 
   /**
+   * Returns the `Relation` object for the given bagId if it is present in the database.
+   * If the bagId does not exist, a `BagIdNotFoundException` is returned.
+   *
+   * @param bagId the bagId corresponding to the relation
+   * @return the relation data of the given bagId
+   */
+  def getBagRelation(bagId: BagId): Try[Relation] = Try {
+    val prepStatement = connection.prepareStatement("SELECT * FROM BagRelation WHERE bagId=?;")
+    prepStatement.setString(1, bagId.toString)
+    prepStatement.closeOnCompletion()
+    val resultSet = prepStatement.executeQuery()
+    val relation = if (resultSet.next())
+                     Relation(
+                       bagId = UUID.fromString(resultSet.getString("bagId")),
+                       baseId = UUID.fromString(resultSet.getString("base")),
+                       timestamp = DateTime.parse(resultSet.getString("timestamp"), ISODateTimeFormat.dateTime()))
+                   else
+                     throw BagIdNotFoundException(bagId)
+    resultSet.close()
+    relation
+  }
+
+  /**
    * Returns a sequence of all bag relations that are present in the database.
    * '''Warning:''' this may load large amounts of data into memory.
    *

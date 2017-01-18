@@ -20,9 +20,14 @@ import java.util.UUID
 
 import nl.knaw.dans.easy.bagindex.BagIndexApp
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import org.scalatra.{ InternalServerError, NotFound, Ok, ScalatraServlet }
+import org.scalatra._
 import nl.knaw.dans.easy.bagindex._
 import org.joda.time.DateTime
+import org.joda.time.format.ISODateTimeFormat
+import org.json4s.JsonDSL._
+
+import scala.xml.PrettyPrinter
+import org.json4s.native.JsonMethods._
 
 case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugEnhancedLogging {
   import app._
@@ -32,35 +37,64 @@ case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugE
     Ok("Hello world")
   }
 
+  // GET: http://bag-index/bag-sequence?contains=<bagId>
+  // given a bagId, return a list of bagIds that have the same baseId, ordered by timestamp
+  // the data is returned as a newline separated (text/plain) String
   get("/bag-sequence") {
-    val contains = params("contains")
-    app.getBagSequence(UUID.fromString(contains))
+    contentType = "text/plain"
+    app.getBagSequence(UUID.fromString(params("contains")))
       .map(ids => Ok(ids.mkString("\n")))
-      .onError {
-        case e: BagIdNotFoundException =>
-          logger.error(e.getMessage, e)
-          NotFound(e.getMessage)
-        case e =>
-          logger.error("Unexpected type of failure", e)
-          InternalServerError(s"[${DateTime.now}] Unexpected type of failure. Please consult the logs")
-      }
+      .onError(defaultErrorHandling)
   }
 
-  // get: http://bag-index/bag-sequence?contains=<bagId>
-  // zoeken naar lijst in bag-sequence,
-  // gegeven bagId, geef alles met dezelfde baseId, gesorteerd op datum
-  // voorlopig newline separated (text/plain) String
+  // GET: http://bag-index/bags/<bagId>
+  // given a bagId, return the relation data corresponding to this bagId
+  // the data is returned as JSON by default or XML when specified (content-type application/xml or text/xml)
+  get("/bags/:bagId") {
+    app.getBagInfo(UUID.fromString(params("bagId")))
+      .map(relation => Ok {
+        request.getHeader("Accept") match {
+          case accept@("application/xml" | "text/xml") =>
+            contentType = accept
+            new PrettyPrinter(80, 4).format {
+              // @formatter:off
+              <relation>
+                <bagId>{relation.bagId.toString}</bagId>
+                <baseId>{relation.baseId.toString}</baseId>
+                <timestamp>{relation.timestamp.toString(ISODateTimeFormat.dateTime())}</timestamp>
+              </relation>
+              // @formatter:on
+            }
+          case _ =>
+            contentType = "application/json"
+            pretty(render {
+              // @formatter:off
+              "relation" -> {
+                ("bagId" -> relation.baseId.toString) ~
+                ("baseId" -> relation.baseId.toString) ~
+                ("timestamp" -> relation.timestamp.toString(ISODateTimeFormat.dateTime()))
+              }
+              // @formatter:on
+            })
+        }
+      })
+      .onError(defaultErrorHandling)
+  }
 
-  // put: http://bag-index/bags/<bagId>
-  // get the bag with <bagId> from the bag-store, read bag-info.txt and get the base and timestamp properties
+  // TODO PUT: http://bag-index/bags/<bagId>
+  // get the bag with the given bagId from the bag-store, read bag-info.txt and get the base and timestamp properties
   // based on this, add a record to the index/database
 
-  // get: http://bag-index/bags/<bagId>
-  // returns record in database met base and timestamp (evt. in JSON format)
+  // TODO zelfde interface in cmd als in servlet
 
-  // zelfde interface in servlet als cmd
-
-
-
-  // TODO add servlet handlers
+  private def defaultErrorHandling(t: Throwable): ActionResult = {
+    t match {
+      case e: BagIdNotFoundException =>
+        logger.error(e.getMessage, e)
+        NotFound(e.getMessage)
+      case e =>
+        logger.error("Unexpected type of failure", e)
+        InternalServerError(s"[${DateTime.now}] Unexpected type of failure. Please consult the logs")
+    }
+  }
 }

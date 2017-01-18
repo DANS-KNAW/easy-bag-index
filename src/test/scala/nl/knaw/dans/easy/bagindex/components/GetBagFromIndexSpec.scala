@@ -8,7 +8,7 @@ import org.joda.time.DateTime
 
 import scala.util.{ Failure, Success }
 
-class GetBagSequenceSpec extends BagIndexDatabaseFixture with GetBagSequence {
+class GetBagFromIndexSpec extends BagIndexDatabaseFixture with GetBagFromIndex {
 
   "getBagSequence" should "return a sequence with only the baseId when there are no child bags declared" in {
     val bagId = UUID.randomUUID()

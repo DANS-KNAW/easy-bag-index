@@ -17,12 +17,12 @@ package nl.knaw.dans.easy.bagindex
 
 import java.io.File
 
-import nl.knaw.dans.easy.bagindex.components.{ AddBagToIndex, Database, GetBagSequence }
+import nl.knaw.dans.easy.bagindex.components.{ AddBagToIndex, Database, GetBagFromIndex }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.configuration.PropertiesConfiguration
 
 trait BagIndexApp extends AddBagToIndex
-  with GetBagSequence
+  with GetBagFromIndex
   with Database
   with DebugEnhancedLogging {
 
