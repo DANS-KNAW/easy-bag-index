@@ -15,15 +15,19 @@
  */
 package nl.knaw.dans.easy
 
-import java.util.{ Properties, UUID }
+import java.nio.file.Path
+import java.util.{ Optional, Properties, UUID }
 
 import org.joda.time.DateTime
 
+import scala.language.implicitConversions
 import scala.util.{ Failure, Success, Try }
 
 package object bagindex {
 
   case class BagIdNotFoundException(bagId: BagId) extends Exception(s"The specified bagId ($bagId) does not exist.")
+  case class BagNotFoundException(bagDir: Path, cause: Throwable) extends Exception(s"A bag could not be loaded at $bagDir", cause)
+  case class BagNotFoundInBagStoreException(bagId: BagId, baseDir: Path) extends Exception(s"The bag with id '$bagId' could not be found in bagstore '${baseDir.toAbsolutePath}'")
 
   val CONTEXT_ATTRIBUTE_KEY_BAGINDEX_APP = "nl.knaw.dans.easy.bagindex.BagIndexApp"
 
@@ -47,5 +51,20 @@ package object bagindex {
         case Failure(throwable) => handle(throwable)
       }
     }
+  }
+
+  /**
+   * Conversions between Scala Option and Java 8 Optional.
+   */
+  object JavaOptionals {
+    implicit def toRichOptional[T](optional: Optional[T]): RichOptional[T] = new RichOptional[T](optional)
+  }
+
+  class RichOptional[T] (opt: Optional[T]) {
+
+    /**
+     * Transform this Optional to an equivalent Scala Option
+     */
+    def asScala: Option[T] = if (opt.isPresent) Some(opt.get()) else None
   }
 }

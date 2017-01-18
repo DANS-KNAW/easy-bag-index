@@ -16,14 +16,18 @@
 package nl.knaw.dans.easy.bagindex
 
 import java.io.File
+import java.nio.file.{ Files, Path, Paths }
 
-import nl.knaw.dans.easy.bagindex.components.{ AddBagToIndex, Database, GetBagFromIndex }
+import nl.knaw.dans.easy.bagindex.components._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.configuration.PropertiesConfiguration
 
 trait BagIndexApp extends AddBagToIndex
   with GetBagFromIndex
+  with AddBagFromBagStore
   with Database
+  with BagStoreAccess
+  with Bagit4FacadeComponent
   with DebugEnhancedLogging {
 
   val properties = new PropertiesConfiguration(new File(System.getProperty("app.home"), "cfg/application.properties"))
@@ -32,13 +36,14 @@ trait BagIndexApp extends AddBagToIndex
   val dbUrl: String = properties.getString("bag-index.database.url")
   val dbUsername: Option[String] = Option(properties.getString("bag-index.database.username"))
   val dbPassword: Option[String] = Option(properties.getString("bag-index.database.password"))
+  val bagStoreBaseDir: Path = Paths.get(properties.getString("bag-index.bag-store.base-dir")).toAbsolutePath
+  val bagFacade = new Bagit4Facade()
 
   def validateSettings(): Unit = {
     def userPasswordSettings = {
       dbUsername.isEmpty && dbPassword.isEmpty || dbUsername.isDefined && dbPassword.isDefined
     }
     assert(userPasswordSettings, "database username and password should be either both defined or not defined")
-
-    // TODO some asserts to validate basic settings
+    assert(Files.isReadable(bagStoreBaseDir), s"Non-existing or non-readable bag-store: $bagStoreBaseDir")
   }
 }

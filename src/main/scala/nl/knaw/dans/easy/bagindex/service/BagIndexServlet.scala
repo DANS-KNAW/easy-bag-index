@@ -34,7 +34,7 @@ case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugE
   val externalBaseUri = new URI(properties.getString("bag-index.daemon.external-base-uri"))
 
   get("/") {
-    Ok("Hello world")
+    Ok("I'm alive!")
   }
 
   // GET: http://bag-index/bag-sequence?contains=<bagId>
@@ -84,14 +84,20 @@ case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugE
   // TODO PUT: http://bag-index/bags/<bagId>
   // get the bag with the given bagId from the bag-store, read bag-info.txt and get the base and 'created' timestamp properties
   // based on this, add a record to the index/database
+  put("/bags/:bagId") {
+    addFromBagStore(UUID.fromString(params("bagId")))
+      .map(_ => Created())
+      .onError(defaultErrorHandling)
+  }
 
+  // TODO error handling on UUID.fromString above (3x)
   // TODO (low prio) zelfde interface in cmd als in servlet
 
   private def defaultErrorHandling(t: Throwable): ActionResult = {
     t match {
-      case e: BagIdNotFoundException =>
-        logger.error(e.getMessage, e)
-        NotFound(e.getMessage)
+      case e: BagIdNotFoundException => NotFound(e.getMessage)
+      case e: BagNotFoundException => NotFound(e.getMessage)
+      case e: BagNotFoundInBagStoreException => NotFound(e.getMessage)
       case e =>
         logger.error("Unexpected type of failure", e)
         InternalServerError(s"[${DateTime.now}] Unexpected type of failure. Please consult the logs")
