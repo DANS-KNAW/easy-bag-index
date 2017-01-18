@@ -30,6 +30,8 @@ trait AddBagFromBagStore {
     } yield superBaseId
   }
 
+  // TODO replace this method with a call to the BagStore API to retrieve the path of the bag
+  // or replace this method with a call to the BagStore API to get the bag-info listing in the bag
   private def toLocation(bagId: BagId): Try[Path] = {
     toContainer(bagId)
       .map(container => Try {

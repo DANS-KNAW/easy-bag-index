@@ -29,6 +29,8 @@ import org.json4s.JsonDSL._
 import scala.xml.PrettyPrinter
 import org.json4s.native.JsonMethods._
 
+import scala.util.Try
+
 case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugEnhancedLogging {
   import app._
   val externalBaseUri = new URI(properties.getString("bag-index.daemon.external-base-uri"))
@@ -42,7 +44,8 @@ case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugE
   // the data is returned as a newline separated (text/plain) String
   get("/bag-sequence") {
     contentType = "text/plain"
-    app.getBagSequence(UUID.fromString(params("contains")))
+    Try { UUID.fromString(params("contains")) }
+      .flatMap(app.getBagSequence)
       .map(ids => Ok(ids.mkString("\n")))
       .onError(defaultErrorHandling)
   }
@@ -51,7 +54,8 @@ case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugE
   // given a bagId, return the relation data corresponding to this bagId
   // the data is returned as JSON by default or XML when specified (content-type application/xml or text/xml)
   get("/bags/:bagId") {
-    app.getBagInfo(UUID.fromString(params("bagId")))
+    Try { UUID.fromString(params("bagId")) }
+      .flatMap(app.getBagInfo)
       .map(relation => Ok {
         request.getHeader("Accept") match {
           case accept@("application/xml" | "text/xml") =>
@@ -81,20 +85,21 @@ case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugE
       .onError(defaultErrorHandling)
   }
 
-  // TODO PUT: http://bag-index/bags/<bagId>
+  // PUT: http://bag-index/bags/<bagId>
   // get the bag with the given bagId from the bag-store, read bag-info.txt and get the base and 'created' timestamp properties
   // based on this, add a record to the index/database
   put("/bags/:bagId") {
-    addFromBagStore(UUID.fromString(params("bagId")))
+    Try { UUID.fromString(params("bagId")) }
+      .flatMap(addFromBagStore)
       .map(_ => Created())
       .onError(defaultErrorHandling)
   }
 
-  // TODO error handling on UUID.fromString above (3x)
   // TODO (low prio) zelfde interface in cmd als in servlet
 
   private def defaultErrorHandling(t: Throwable): ActionResult = {
     t match {
+      case e: IllegalArgumentException => BadRequest(e.getMessage)
       case e: BagIdNotFoundException => NotFound(e.getMessage)
       case e: BagNotFoundException => NotFound(e.getMessage)
       case e: BagNotFoundInBagStoreException => NotFound(e.getMessage)
