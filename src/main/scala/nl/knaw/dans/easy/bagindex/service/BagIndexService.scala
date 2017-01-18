@@ -15,8 +15,6 @@
  */
 package nl.knaw.dans.easy.bagindex.service
 
-import java.nio.file.Files
-
 import nl.knaw.dans.easy.bagindex.{ BagIndexApp, CONTEXT_ATTRIBUTE_KEY_BAGINDEX_APP => appKey }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.eclipse.jetty.ajp.Ajp13SocketConnector

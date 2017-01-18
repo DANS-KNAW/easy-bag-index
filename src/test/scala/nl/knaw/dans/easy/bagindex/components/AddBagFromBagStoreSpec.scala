@@ -2,7 +2,7 @@ package nl.knaw.dans.easy.bagindex.components
 
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagindex.{ BagId, BagIdNotFoundException, BagIndexDatabaseFixture, BagNotFoundInBagStoreException, BagRelation, BagStoreFixture, BaseId }
+import nl.knaw.dans.easy.bagindex._
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 
@@ -21,7 +21,7 @@ class AddBagFromBagStoreSpec extends BagStoreFixture with BagIndexDatabaseFixtur
       case Success(BagRelation(id, base, created)) =>
         id shouldBe relation.bagId
         base shouldBe relation.baseId
-        created.toString(ISODateTimeFormat.dateTime()) shouldBe relation.created.toString(ISODateTimeFormat.dateTime())
+        created.toString(dateTimeFormatter) shouldBe relation.created.toString(dateTimeFormatter)
     }
   }
 

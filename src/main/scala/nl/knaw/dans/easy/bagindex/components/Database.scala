@@ -18,10 +18,9 @@ package nl.knaw.dans.easy.bagindex.components
 import java.sql.{ Connection, DriverManager }
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagindex.{ BagId, BagIdNotFoundException, BaseId, BagRelation }
+import nl.knaw.dans.easy.bagindex.{ BagId, BagIdNotFoundException, BagRelation, BaseId, dateTimeFormatter }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
-import org.joda.time.format.ISODateTimeFormat
 import resource._
 
 import scala.collection.immutable.Seq
@@ -147,7 +146,7 @@ trait Database {
           BagRelation(
             bagId = UUID.fromString(result.getString("bagId")),
             baseId = UUID.fromString(result.getString("base")),
-            created = DateTime.parse(result.getString("created"), ISODateTimeFormat.dateTime()))
+            created = DateTime.parse(result.getString("created"), dateTimeFormatter))
         else
           throw BagIdNotFoundException(bagId))
       .tried
@@ -171,7 +170,7 @@ trait Database {
         .map(_ => BagRelation(
           bagId = UUID.fromString(result.getString("bagId")),
           baseId = UUID.fromString(result.getString("base")),
-          created = DateTime.parse(result.getString("created"), ISODateTimeFormat.dateTime())))
+          created = DateTime.parse(result.getString("created"), dateTimeFormatter)))
         .toList)
       .tried
   }
@@ -192,7 +191,7 @@ trait Database {
       .map(prepStatement => {
         prepStatement.setString(1, bagId.toString)
         prepStatement.setString(2, baseId.toString)
-        prepStatement.setString(3, created.toString(ISODateTimeFormat.dateTime()))
+        prepStatement.setString(3, created.toString(dateTimeFormatter))
         prepStatement.executeUpdate()
       })
       .tried

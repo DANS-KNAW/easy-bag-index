@@ -19,6 +19,7 @@ import java.nio.file.Path
 import java.util.{ Optional, Properties, UUID }
 
 import org.joda.time.DateTime
+import org.joda.time.format.{ DateTimeFormatter, ISODateTimeFormat }
 
 import scala.language.implicitConversions
 import scala.util.{ Failure, Success, Try }
@@ -30,6 +31,7 @@ package object bagindex {
   case class BagNotFoundInBagStoreException(bagId: BagId, baseDir: Path) extends Exception(s"The bag with id '$bagId' could not be found in bagstore '${baseDir.toAbsolutePath}'")
 
   val CONTEXT_ATTRIBUTE_KEY_BAGINDEX_APP = "nl.knaw.dans.easy.bagindex.BagIndexApp"
+  val dateTimeFormatter: DateTimeFormatter = ISODateTimeFormat.dateTime()
 
   type BagId = UUID
   type BaseId = UUID

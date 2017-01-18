@@ -5,8 +5,8 @@ import java.nio.file.Path
 import gov.loc.repository.bagit.{ Bag, BagFactory }
 import nl.knaw.dans.easy.bagindex.BagNotFoundException
 
-import scala.util.{ Failure, Try }
 import scala.collection.JavaConverters.mapAsScalaMapConverter
+import scala.util.{ Failure, Try }
 
 trait BagFacadeComponent {
 

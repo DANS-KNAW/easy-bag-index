@@ -23,7 +23,6 @@ import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.scalatra._
 import nl.knaw.dans.easy.bagindex._
 import org.joda.time.DateTime
-import org.joda.time.format.ISODateTimeFormat
 import org.json4s.JsonDSL._
 
 import scala.xml.PrettyPrinter
@@ -65,7 +64,7 @@ case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugE
               <bag-info>
                 <bag-id>{relation.bagId.toString}</bag-id>
                 <base-id>{relation.baseId.toString}</base-id>
-                <created>{relation.created.toString(ISODateTimeFormat.dateTime())}</created>
+                <created>{relation.created.toString(dateTimeFormatter)}</created>
               </bag-info>
               // @formatter:on
             }
@@ -76,7 +75,7 @@ case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugE
               "bag-info" -> {
                 ("bag-id" -> relation.bagId.toString) ~
                 ("base-id" -> relation.baseId.toString) ~
-                ("created" -> relation.created.toString(ISODateTimeFormat.dateTime()))
+                ("created" -> relation.created.toString(dateTimeFormatter))
               }
               // @formatter:on
             })

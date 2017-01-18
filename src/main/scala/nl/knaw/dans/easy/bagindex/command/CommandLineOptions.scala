@@ -20,7 +20,6 @@ import java.util.UUID
 import nl.knaw.dans.easy.bagindex.{ BagId, BaseId, Version }
 import org.apache.commons.configuration.PropertiesConfiguration
 import org.joda.time.DateTime
-import org.joda.time.format.ISODateTimeFormat
 import org.rogach.scallop.{ ScallopConf, ScallopOption, Subcommand, singleArgConverter }
 
 class CommandLineOptions(args: Array[String], properties: PropertiesConfiguration) extends ScallopConf(args) {
