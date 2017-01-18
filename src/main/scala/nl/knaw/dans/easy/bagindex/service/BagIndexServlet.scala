@@ -58,20 +58,20 @@ case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugE
             contentType = accept
             new PrettyPrinter(80, 4).format {
               // @formatter:off
-              <relation>
-                <bagId>{relation.bagId.toString}</bagId>
-                <baseId>{relation.baseId.toString}</baseId>
+              <bag-info>
+                <bag-id>{relation.bagId.toString}</bag-id>
+                <base-id>{relation.baseId.toString}</base-id>
                 <timestamp>{relation.timestamp.toString(ISODateTimeFormat.dateTime())}</timestamp>
-              </relation>
+              </bag-info>
               // @formatter:on
             }
           case _ =>
             contentType = "application/json"
             pretty(render {
               // @formatter:off
-              "relation" -> {
-                ("bagId" -> relation.baseId.toString) ~
-                ("baseId" -> relation.baseId.toString) ~
+              "bag-info" -> {
+                ("bag-id" -> relation.bagId.toString) ~
+                ("base-id" -> relation.baseId.toString) ~
                 ("timestamp" -> relation.timestamp.toString(ISODateTimeFormat.dateTime()))
               }
               // @formatter:on
@@ -85,7 +85,9 @@ case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugE
   // get the bag with the given bagId from the bag-store, read bag-info.txt and get the base and timestamp properties
   // based on this, add a record to the index/database
 
-  // TODO zelfde interface in cmd als in servlet
+  // TODO rename 'timestamp' -> 'created'
+
+  // TODO (low prio) zelfde interface in cmd als in servlet
 
   private def defaultErrorHandling(t: Throwable): ActionResult = {
     t match {

@@ -22,6 +22,7 @@ import nl.knaw.dans.easy.bagindex.{ BagId, BagIdNotFoundException, BaseId, Relat
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
+import resource._
 
 import scala.collection.immutable.Seq
 import scala.util.Try
@@ -83,18 +84,22 @@ trait Database {
    * @param bagId the bagId for which the base bagId needs to be returned
    * @return the baseId of the given bagId if it exists; failure otherwise
    */
-  def getBaseBagId(bagId: BagId): Try[BaseId] = Try {
+  def getBaseBagId(bagId: BagId): Try[BaseId] = {
     trace(bagId)
-    val prepStatement = connection.prepareStatement("SELECT base FROM BagRelation WHERE bagId=?;")
-    prepStatement.setString(1, bagId.toString)
-    prepStatement.closeOnCompletion()
-    val resultSet = prepStatement.executeQuery()
-    val base = if (resultSet.next())
-                 UUID.fromString(resultSet.getString("base"))
-               else
-                 throw BagIdNotFoundException(bagId)
-    resultSet.close()
-    base
+
+    val resultSet = for {
+      prepStatement <- managed(connection.prepareStatement("SELECT base FROM BagRelation WHERE bagId=?;"))
+      _ = prepStatement.setString(1, bagId.toString)
+      resultSet <- managed(prepStatement.executeQuery())
+    } yield resultSet
+
+    resultSet
+      .map(result =>
+        if (result.next())
+          UUID.fromString(result.getString("base"))
+        else
+          throw BagIdNotFoundException(bagId))
+      .tried
   }
 
   /**
@@ -103,18 +108,21 @@ trait Database {
    * @param baseId the baseId used during this search
    * @return a sequence of all bagIds with a given baseId
    */
-  def getAllBagsWithBase(baseId: BaseId): Try[Seq[BagId]] = Try {
+  def getAllBagsWithBase(baseId: BaseId): Try[Seq[BagId]] = {
     trace(baseId)
-    val prepStatement = connection.prepareStatement("SELECT bagId FROM BagRelation WHERE base=? ORDER BY timestamp;")
-    prepStatement.setString(1, baseId.toString)
-    prepStatement.closeOnCompletion()
-    val resultSet = prepStatement.executeQuery()
-    val result: Seq[BagId] = Stream.continually(resultSet.next())
-      .takeWhile(b => b)
-      .map(_ => UUID.fromString(resultSet.getString("bagId")))
-      .toList
-    resultSet.close()
-    result
+
+    val resultSet = for {
+      prepStatement <- managed(connection.prepareStatement("SELECT bagId FROM BagRelation WHERE base=? ORDER BY timestamp;"))
+      _ = prepStatement.setString(1, baseId.toString)
+      resultSet <- managed(prepStatement.executeQuery())
+    } yield resultSet
+
+    resultSet
+      .map(result => Stream.continually(result.next())
+        .takeWhile(b => b)
+        .map(_ => UUID.fromString(result.getString("bagId")))
+        .toList)
+      .tried
   }
 
   /**
@@ -124,20 +132,25 @@ trait Database {
    * @param bagId the bagId corresponding to the relation
    * @return the relation data of the given bagId
    */
-  def getBagRelation(bagId: BagId): Try[Relation] = Try {
-    val prepStatement = connection.prepareStatement("SELECT * FROM BagRelation WHERE bagId=?;")
-    prepStatement.setString(1, bagId.toString)
-    prepStatement.closeOnCompletion()
-    val resultSet = prepStatement.executeQuery()
-    val relation = if (resultSet.next())
-                     Relation(
-                       bagId = UUID.fromString(resultSet.getString("bagId")),
-                       baseId = UUID.fromString(resultSet.getString("base")),
-                       timestamp = DateTime.parse(resultSet.getString("timestamp"), ISODateTimeFormat.dateTime()))
-                   else
-                     throw BagIdNotFoundException(bagId)
-    resultSet.close()
-    relation
+  def getBagRelation(bagId: BagId): Try[Relation] = {
+    trace(bagId)
+
+    val resultSet = for {
+      prepStatement <- managed(connection.prepareStatement("SELECT * FROM BagRelation WHERE bagId=?;"))
+      _ = prepStatement.setString(1, bagId.toString)
+      resultSet <- managed(prepStatement.executeQuery())
+    } yield resultSet
+
+    resultSet
+      .map(result =>
+        if (result.next())
+          Relation(
+            bagId = UUID.fromString(result.getString("bagId")),
+            baseId = UUID.fromString(result.getString("base")),
+            timestamp = DateTime.parse(result.getString("timestamp"), ISODateTimeFormat.dateTime()))
+        else
+          throw BagIdNotFoundException(bagId))
+      .tried
   }
 
   /**
@@ -146,22 +159,21 @@ trait Database {
    *
    * @return a list of all bag relations
    */
-  def getAllBagRelations: Try[Seq[Relation]] = Try {
-    val statement = connection.createStatement
-    statement.closeOnCompletion()
-    val resultSet = statement.executeQuery("SELECT * FROM BagRelation;")
+  def getAllBagRelations: Try[Seq[Relation]] = {
+    val resultSet = for {
+      statement <- managed(connection.createStatement)
+      resultSet <- managed(statement.executeQuery("SELECT * FROM BagRelation;"))
+    } yield resultSet
 
-    val result = Stream.continually(resultSet.next())
-      .takeWhile(b => b)
-      .map(_ => Relation(
-        bagId = UUID.fromString(resultSet.getString("bagId")),
-        baseId = UUID.fromString(resultSet.getString("base")),
-        timestamp = DateTime.parse(resultSet.getString("timestamp"), ISODateTimeFormat.dateTime())))
-      .toList
-
-    resultSet.close()
-
-    result
+    resultSet
+      .map(result => Stream.continually(result.next())
+        .takeWhile(b => b)
+        .map(_ => Relation(
+          bagId = UUID.fromString(result.getString("bagId")),
+          baseId = UUID.fromString(result.getString("base")),
+          timestamp = DateTime.parse(result.getString("timestamp"), ISODateTimeFormat.dateTime())))
+        .toList)
+      .tried
   }
 
   /**
@@ -173,13 +185,17 @@ trait Database {
    * @param timestamp the date/time at which the bag was created
    * @return `Success` if the bag relation was added successfully; `Failure` otherwise
    */
-  def addBagRelation(bagId: BagId, baseId: BaseId, timestamp: DateTime): Try[Unit] = Try {
+  def addBagRelation(bagId: BagId, baseId: BaseId, timestamp: DateTime): Try[Unit] = {
     trace((bagId, baseId, timestamp))
-    val prepStatement = connection.prepareStatement("INSERT INTO BagRelation VALUES (?, ?, ?);")
-    prepStatement.setString(1, bagId.toString)
-    prepStatement.setString(2, baseId.toString)
-    prepStatement.setString(3, timestamp.toString(ISODateTimeFormat.dateTime()))
-    prepStatement.closeOnCompletion()
-    prepStatement.executeUpdate()
+
+    managed(connection.prepareStatement("INSERT INTO BagRelation VALUES (?, ?, ?);"))
+      .map(prepStatement => {
+        prepStatement.setString(1, bagId.toString)
+        prepStatement.setString(2, baseId.toString)
+        prepStatement.setString(3, timestamp.toString(ISODateTimeFormat.dateTime()))
+        prepStatement.executeUpdate()
+      })
+      .tried
+      .map(_ => ())
   }
 }
