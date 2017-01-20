@@ -20,7 +20,7 @@ import java.nio.file.{ Path, Paths }
 import nl.knaw.dans.easy.bagindex.components.{ BagStoreAccess, Bagit4FacadeComponent }
 import org.apache.commons.io.FileUtils
 
-trait BagStoreFixture extends TestSupportFixture with BagStoreAccess with Bagit4FacadeComponent {
+trait BagStoreFixture extends TestSupportFixture with BagStoreAccess {
 
   override val bagStoreBaseDir: Path = {
     val bagStoreBaseDir = testDir.resolve("bag-store")
@@ -29,5 +29,4 @@ trait BagStoreFixture extends TestSupportFixture with BagStoreAccess with Bagit4
 
     bagStoreBaseDir
   }
-  override val bagFacade = new Bagit4Facade()
 }
