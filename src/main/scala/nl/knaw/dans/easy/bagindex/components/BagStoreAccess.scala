@@ -16,6 +16,7 @@
 package nl.knaw.dans.easy.bagindex.components
 
 import java.nio.file.{ Files, Path }
+import java.util.UUID
 
 import nl.knaw.dans.easy.bagindex.JavaOptionals._
 import nl.knaw.dans.easy.bagindex.{ BagId, BagNotFoundInBagStoreException }
@@ -43,12 +44,13 @@ trait BagStoreAccess {
    * @see [[toContainer]]
    */
   def toLocation(bagId: BagId): Try[Path] = {
-    toContainer(bagId)
-      .map(container => {
-        val containedFiles = Files.list(container).iterator().asScala.toList
-        assert(containedFiles.size == 1, s"Corrupt BagStore, container with less or more than one file: $container")
-        container.resolve(containedFiles.head)
-      })
+    toContainer(bagId).flatMap(toLocation)
+  }
+
+  private def toLocation(container: Path): Try[Path] = Try {
+    val containedFiles = Files.list(container).iterator().asScala.toList
+    assert(containedFiles.size == 1, s"Corrupt BagStore, container with less or more than one file: $container")
+    container.resolve(containedFiles.head)
   }
 
   /**
@@ -85,5 +87,49 @@ trait BagStoreAccess {
     }
 
     tailRec(bagStoreBaseDir, bagId.toString.filterNot(_ == '-'))
+  }
+
+  /**
+   * Lists the bagId and path for every bag in the bagstore.
+   *
+   * @return a stream of `(BagId, Path)` tuples
+   */
+  def traverse: Try[Stream[(BagId, Path)]] = {
+
+    // we assume all bags in a bagstore are at equal depth, so following one path is enough!
+    def probeForPathDepth: Try[Int] = Try {
+
+      @tailrec
+      def probe(path: Path, length: Int, levels: Int): Int = {
+        length match {
+          case l if l > 0 =>
+            val p = Files.list(path).findFirst().get
+            probe(p, length - p.getFileName.toString.length, levels + 1)
+          case 0 => levels
+          case _ => throw new Exception("corrupt bagstore")
+        }
+      }
+
+      probe(bagStoreBaseDir, UUID.randomUUID().toString.filterNot(_ == '-').length, 0)
+    }
+
+    def formatUuidStrCanonically(s: String): String = {
+      List(s.slice(0, 8), s.slice(8, 12), s.slice(12, 16), s.slice(16, 20), s.slice(20, 32)).mkString("-")
+    }
+
+    def traverse(depth: Int): Try[Stream[(BagId, Path)]] = Try {
+      Files.walk(bagStoreBaseDir, depth).iterator().asScala.toStream
+        .map(bagStoreBaseDir.relativize)
+        .withFilter(_.getNameCount == depth)
+        .map(path => {
+          val bagId = UUID.fromString(formatUuidStrCanonically(path.toString.filterNot(_ == '/')))
+          (bagId, toLocation(bagStoreBaseDir.resolve(path)).get)
+        })
+    }
+
+    for {
+      depth <- probeForPathDepth
+      bags <- traverse(depth)
+    } yield bags
   }
 }

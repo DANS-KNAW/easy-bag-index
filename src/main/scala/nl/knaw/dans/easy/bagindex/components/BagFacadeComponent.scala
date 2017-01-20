@@ -16,18 +16,22 @@
 package nl.knaw.dans.easy.bagindex.components
 
 import java.nio.file.Path
+import java.util.UUID
 
 import gov.loc.repository.bagit.{ Bag, BagFactory }
-import nl.knaw.dans.easy.bagindex.BagNotFoundException
+import nl.knaw.dans.easy.bagindex.{ BagNotFoundException, BaseId, NoBagInfoFoundException, dateTimeFormatter }
+import org.joda.time.DateTime
 
 import scala.collection.JavaConverters.mapAsScalaMapConverter
-import scala.util.{ Failure, Try }
+import scala.util.{ Failure, Success, Try }
 
 trait BagFacadeComponent {
 
   val bagFacade: BagFacade
 
   trait BagFacade {
+    def getIndexRelevantBagInfo(bagDir: Path): Try[(Option[BaseId], Option[DateTime])]
+
     def getBagInfo(bagDir: Path): Try[Map[String, String]]
   }
 }
@@ -35,10 +39,24 @@ trait BagFacadeComponent {
 trait Bagit4FacadeComponent extends BagFacadeComponent {
   class Bagit4Facade(bagFactory: BagFactory = new BagFactory) extends BagFacade {
 
+    val IS_VERSION_OF = "Is-Version-Of"
+    val CREATED = "Created"
+
+    def getIndexRelevantBagInfo(bagDir: Path): Try[(Option[BaseId], Option[DateTime])] = {
+      for {
+        info <- getBagInfo(bagDir)
+        baseId = info.get(IS_VERSION_OF).map(UUID.fromString)
+        created = info.get(CREATED).map(DateTime.parse(_, dateTimeFormatter))
+      } yield (baseId, created)
+    }
+
     def getBagInfo(bagDir: Path): Try[Map[String, String]] = {
       for {
         bag <- getBag(bagDir)
-      } yield bag.getBagInfoTxt.asScala.toMap
+        info <- Option(bag.getBagInfoTxt) // this call returns null if there is not bag-info.txt
+          .map(map => Success(map.asScala.toMap))
+          .getOrElse(Failure(NoBagInfoFoundException(bagDir)))
+      } yield info
     }
 
     private def getBag(bagDir: Path): Try[Bag] = Try {

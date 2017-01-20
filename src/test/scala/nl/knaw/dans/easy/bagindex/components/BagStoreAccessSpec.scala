@@ -1,3 +1,18 @@
+/**
+ * Copyright (C) 2017 DANS - Data Archiving and Networked Services (info@dans.knaw.nl)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package nl.knaw.dans.easy.bagindex.components
 
 import java.util.UUID
@@ -37,6 +52,21 @@ class BagStoreAccessSpec extends BagStoreFixture {
       case Failure(BagNotFoundInBagStoreException(id, baseDir)) =>
         id shouldBe bagId
         baseDir shouldBe bagStoreBaseDir
+    }
+  }
+
+  "traverse" should "list all bags in the bagstore" in {
+    val uuid1 = UUID.fromString("00000000-0000-0000-0000-000000000001")
+    val uuid2 = UUID.fromString("00000000-0000-0000-0000-000000000002")
+    val uuid3 = UUID.fromString("00000000-0000-0000-0000-000000000003")
+
+    val path1 = bagStoreBaseDir.resolve("00/000000000000000000000000000001/bag-revision-1")
+    val path2 = bagStoreBaseDir.resolve("00/000000000000000000000000000002/bag-revision-2")
+    val path3 = bagStoreBaseDir.resolve("00/000000000000000000000000000003/bag-revision-3")
+
+    inside(traverse) {
+      case Success(stream) => stream.toList should (have size 3 and
+        contain only((uuid1, path1), (uuid2, path2), (uuid3, path3)))
     }
   }
 }

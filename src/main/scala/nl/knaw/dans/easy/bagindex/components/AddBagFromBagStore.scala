@@ -15,11 +15,8 @@
  */
 package nl.knaw.dans.easy.bagindex.components
 
-import java.util.UUID
-
-import nl.knaw.dans.easy.bagindex.{ BagId, BaseId, dateTimeFormatter }
+import nl.knaw.dans.easy.bagindex.{ BagId, BaseId }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import org.joda.time.DateTime
 
 import scala.util.Try
 
@@ -28,9 +25,6 @@ trait AddBagFromBagStore {
     with BagStoreAccess
     with BagFacadeComponent
     with DebugEnhancedLogging =>
-
-  val IS_VERSION_OF = "Is-Version-Of"
-  val CREATED = "Created"
 
   /**
    * Add the bag info of the bag identified with bagId to the database.
@@ -45,9 +39,7 @@ trait AddBagFromBagStore {
     trace(bagId)
     for {
       bagDir <- toLocation(bagId)
-      bagInfo <- bagFacade.getBagInfo(bagDir)
-      baseId = bagInfo.get(IS_VERSION_OF).map(UUID.fromString)
-      created = bagInfo.get(CREATED).map(DateTime.parse(_, dateTimeFormatter))
+      (baseId, created) <- bagFacade.getIndexRelevantBagInfo(bagDir)
       superBaseId <- baseId.map(add(bagId, _, created)).getOrElse(addBase(bagId, created))
     } yield superBaseId
   }

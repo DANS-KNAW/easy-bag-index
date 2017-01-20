@@ -19,12 +19,13 @@ import java.sql.{ Connection, DriverManager }
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagindex._
+import nl.knaw.dans.lib.error.TraversableTryExtensions
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
 import resource._
 
 import scala.collection.immutable.Seq
-import scala.util.Try
+import scala.util.{ Failure, Try }
 
 trait Database {
   this: DebugEnhancedLogging =>
@@ -176,6 +177,25 @@ trait Database {
   }
 
   /**
+   * Return a sequence of bagIds refering to bags that are the base of their sequence.
+   *
+   * @return the bagId of the base of every sequence
+   */
+  def getAllBaseBagIds: Try[Seq[BagId]] = {
+    val resultSet = for {
+      statement <- managed(connection.createStatement)
+      resultSet <- managed(statement.executeQuery("SELECT bagId FROM BagRelation WHERE bagId = base;"))
+    } yield resultSet
+
+    resultSet
+      .map(result => Stream.continually(result.next())
+        .takeWhile(b => b)
+        .map(_ => UUID.fromString(result.getString("bagId")))
+        .toList)
+      .tried
+  }
+
+  /**
    * Add a bag relation to the database. A bag relation consists of a unique bagId (that is not yet
    * included in the database), a base bagId and a 'created' timestamp.
    *
@@ -185,7 +205,7 @@ trait Database {
    * @return `Success` if the bag relation was added successfully; `Failure` otherwise
    */
   def addBagRelation(bagId: BagId, baseId: BaseId, created: DateTime): Try[Unit] = {
-    trace((bagId, baseId, created))
+    trace(bagId, baseId, created)
 
     managed(connection.prepareStatement("INSERT INTO BagRelation VALUES (?, ?, ?);"))
       .map(prepStatement => {
@@ -197,4 +217,85 @@ trait Database {
       .tried
       .map(_ => ())
   }
+
+  /**
+   * Adds all bag relations in the collection to the index. If any addition fails,
+   * the whole addition is rolled back.
+   *
+   * @param iterable the bag relations to be inserted
+   * @return `Success` if the bag relations were added successfully; `Failure` otherwise
+   */
+  def bulkAddBagRelation(iterable: Iterable[BagRelation]): Try[Unit] = Try {
+    connection.setAutoCommit(false)
+
+    val res = iterable
+      .map(relation => addBagRelation(relation.bagId, relation.baseId, relation.created))
+      .collectResults
+      .map(_ => connection.commit())
+      .recoverWith {
+        case e =>
+          connection.rollback()
+          Failure(e)
+      }
+
+    connection.setAutoCommit(true)
+
+    res
+  }.flatten
+
+  /**
+   * Set all baseIds in the sequence to the base bagId of the sequence
+   *
+   * @param base the base bagId to which all baseIds in the sequence should be updated to.
+   * @return `Success` if the update was successful; `Failure` otherwise
+   */
+  def updateBaseIdRecursively(base: BagId): Try[Unit] = {
+    trace(base)
+
+    val query =
+      """
+        |UPDATE BagRelation SET base = ? WHERE bagId IN (WITH RECURSIVE
+        |  bags_in_sequence(bag) AS (
+        |    VALUES(?)
+        |      UNION
+        |      SELECT bagId FROM BagRelation, bags_in_sequence
+        |    WHERE BagRelation.base=bags_in_sequence.bag
+        |  )
+        |SELECT * FROM bags_in_sequence);
+      """.stripMargin
+
+    managed(connection.prepareStatement(query))
+      .map(prepStatement => {
+        prepStatement.setString(1, base.toString)
+        prepStatement.setString(2, base.toString)
+        prepStatement.executeUpdate()
+      })
+      .tried
+      .map(_ => ())
+  }
+
+  /**
+   * Set all baseIds in the sequence to the base bagId of the sequence, for every baseId in the
+   * given collection. If any of the updates fails, the whole update is rolled back.
+   *
+   * @param iterable the base bagIds to which all baseIds in the sequences should be updated to.
+   * @return `Success` if the update was successful; `Failure` otherwise
+   */
+  def bulkUpdateBaseIdRecursively(iterable: Iterable[BagId]): Try[Unit] = Try {
+    connection.setAutoCommit(false)
+
+    val res = iterable
+      .map(updateBaseIdRecursively)
+      .collectResults
+      .map(_ => connection.commit())
+      .recoverWith {
+        case e =>
+          connection.rollback()
+          Failure(e)
+      }
+
+    connection.setAutoCommit(true)
+
+    res
+  }.flatten
 }
