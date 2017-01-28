@@ -35,7 +35,7 @@ package object bagindex {
 
   type BagId = UUID
   type BaseId = UUID
-  case class BagRelation(bagId: BagId, baseId: BaseId, created: DateTime)
+  case class BagInfo(bagId: BagId, baseId: BaseId, created: DateTime)
 
   object Version {
     def apply(): String = {
