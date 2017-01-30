@@ -51,7 +51,6 @@ trait AddBagFromBagStore {
     for {
       bagDir <- toLocation(bagId)
       bagInfo <- bagFacade.getBagInfo(bagDir)
-      //      baseId <-  bagInfo.get(IS_VERSION_OF).map(new URI(_)).map(getIsVersionOfFromUri(bagId))
       baseId <- bagInfo.get(IS_VERSION_OF)
         .map(s => Try {
           new URI(s)

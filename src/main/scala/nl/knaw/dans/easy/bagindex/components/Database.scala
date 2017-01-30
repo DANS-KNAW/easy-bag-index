@@ -117,7 +117,7 @@ trait Database {
     } yield resultSet
 
     resultSet
-        .map(result => Stream.continually(result.next())
+      .map(result => Stream.continually(result.next())
         .takeWhile(b => b)
         .map(_ => UUID.fromString(result.getString("bagId")))
         .toList)
