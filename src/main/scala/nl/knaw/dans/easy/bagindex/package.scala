@@ -30,7 +30,7 @@ package object bagindex {
   case class BagNotFoundException(bagDir: Path, cause: Throwable) extends Exception(s"A bag could not be loaded at $bagDir", cause)
   case class BagNotFoundInBagStoreException(bagId: BagId, baseDir: Path) extends Exception(s"The bag with id '$bagId' could not be found in bagstore '${baseDir.toAbsolutePath}'")
   case class NoBagInfoFoundException(bagDir: Path) extends Exception(s"The bag at '$bagDir' does not have a file 'bag-info.txt'")
-  case class InvalidIsVersionOfException(bagId: BagId, value: String) extends Exception(s"Bag with id $bagId has an unsupported value in the bag-info.txt field Is-Version-Of: $value")
+  case class InvalidIsVersionOfException(bagDir: Path, value: String) extends Exception(s"Bag at '$bagDir' has an unsupported value in the bag-info.txt for field Is-Version-Of: $value")
 
   val CONTEXT_ATTRIBUTE_KEY_BAGINDEX_APP = "nl.knaw.dans.easy.bagindex.BagIndexApp"
   val dateTimeFormatter: DateTimeFormatter = ISODateTimeFormat.dateTime()

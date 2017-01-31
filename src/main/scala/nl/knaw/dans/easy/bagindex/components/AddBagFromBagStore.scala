@@ -15,14 +15,10 @@
  */
 package nl.knaw.dans.easy.bagindex.components
 
-import java.net.URI
-import java.util.UUID
-
-import nl.knaw.dans.easy.bagindex.{ BagId, BaseId, InvalidIsVersionOfException, dateTimeFormatter }
+import nl.knaw.dans.easy.bagindex.{ BagId, BaseId }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import org.joda.time.DateTime
 
-import scala.util.{ Failure, Success, Try }
+import scala.util.Try
 
 trait AddBagFromBagStore {
   this: AddBagToIndex
@@ -43,24 +39,8 @@ trait AddBagFromBagStore {
     trace(bagId)
     for {
       bagDir <- toLocation(bagId)
-      bagInfo <- bagFacade.getBagInfo(bagDir)
-      baseId <- bagInfo.get(IS_VERSION_OF)
-        .map(s => Try {
-          new URI(s)
-        }.flatMap(getIsVersionOfFromUri(bagId)).map(Option(_)))
-        .getOrElse(Success(None))
-      created = bagInfo.get(CREATED).map(DateTime.parse(_, dateTimeFormatter))
+      (baseId, created) <- bagFacade.getIndexRelevantBagInfo(bagDir)
       superBaseId <- baseId.map(add(bagId, _, created)).getOrElse(addBase(bagId, created))
     } yield superBaseId
-  }
-
-  // TODO: canditate for easy-bagit-lib
-  private def getIsVersionOfFromUri(bagId: BagId)(uri: URI): Try[UUID] = {
-    if(uri.getScheme == "urn") {
-      val uuidPart = uri.getSchemeSpecificPart
-      val parts = uuidPart.split(':')
-      if (parts.length != 2) Failure(InvalidIsVersionOfException(bagId, uri.toASCIIString))
-      else Try { UUID.fromString(parts(1)) }
-    } else Failure(InvalidIsVersionOfException(bagId, uri.toASCIIString))
   }
 }

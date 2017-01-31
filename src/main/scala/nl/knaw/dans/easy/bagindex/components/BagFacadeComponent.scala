@@ -15,11 +15,12 @@
  */
 package nl.knaw.dans.easy.bagindex.components
 
+import java.net.URI
 import java.nio.file.Path
 import java.util.UUID
 
 import gov.loc.repository.bagit.{ Bag, BagFactory }
-import nl.knaw.dans.easy.bagindex.{ BagNotFoundException, BaseId, NoBagInfoFoundException, dateTimeFormatter }
+import nl.knaw.dans.easy.bagindex.{ BagNotFoundException, BaseId, InvalidIsVersionOfException, NoBagInfoFoundException, dateTimeFormatter }
 import org.joda.time.DateTime
 
 import scala.collection.JavaConverters.mapAsScalaMapConverter
@@ -46,7 +47,9 @@ trait Bagit4FacadeComponent extends BagFacadeComponent {
     def getIndexRelevantBagInfo(bagDir: Path): Try[(Option[BaseId], Option[DateTime])] = {
       for {
         info <- getBagInfo(bagDir)
-        baseId = info.get(IS_VERSION_OF).map(UUID.fromString)
+        baseId <- info.get(IS_VERSION_OF)
+          .map(ivo => Try(new URI(ivo)).flatMap(getIsVersionOfFromUri(bagDir)).map(Option(_)))
+          .getOrElse(Success(None))
         created = info.get(CREATED).map(DateTime.parse(_, dateTimeFormatter))
       } yield (baseId, created)
     }
@@ -63,5 +66,15 @@ trait Bagit4FacadeComponent extends BagFacadeComponent {
     private def getBag(bagDir: Path): Try[Bag] = Try {
       bagFactory.createBag(bagDir.toFile, BagFactory.Version.V0_97, BagFactory.LoadOption.BY_MANIFESTS)
     }.recoverWith { case cause => Failure(BagNotFoundException(bagDir, cause)) }
+
+    // TODO: canditate for easy-bagit-lib
+    private def getIsVersionOfFromUri(bagDir: Path)(uri: URI): Try[UUID] = {
+      if(uri.getScheme == "urn") {
+        val uuidPart = uri.getSchemeSpecificPart
+        val parts = uuidPart.split(':')
+        if (parts.length != 2) Failure(InvalidIsVersionOfException(bagDir, uri.toASCIIString))
+        else Try { UUID.fromString(parts(1)) }
+      } else Failure(InvalidIsVersionOfException(bagDir, uri.toASCIIString))
+    }
   }
 }
