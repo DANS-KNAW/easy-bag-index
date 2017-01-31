@@ -15,67 +15,18 @@
  */
 package nl.knaw.dans.easy.bagindex.components
 
-import java.sql.{ Connection, DriverManager }
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagindex._
-import nl.knaw.dans.lib.error.TraversableTryExtensions
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
 import resource._
 
 import scala.collection.immutable.Seq
-import scala.util.{ Failure, Try }
+import scala.util.Try
 
 trait Database {
-  this: DebugEnhancedLogging =>
-  import logger._
-
-  private var connection: Connection = _
-
-  val dbDriverClass: String
-  val dbUrl: String
-  val dbUsername: Option[String]
-  val dbPassword: Option[String]
-
-  /**
-   * Hook for creating a connection. If a username and password is provided, these will be taken
-   * into account when creating the connection; otherwise the connection is created without
-   * username and password.
-   *
-   * @return the connection
-   */
-  protected def createConnection: Connection = {
-    val optConn = for {
-      username <- dbUsername
-      password <- dbPassword
-    } yield DriverManager.getConnection(dbUrl, username, password)
-
-    optConn.getOrElse(DriverManager.getConnection(dbUrl))
-  }
-
-  /**
-   * Establishes the connection with the database
-   */
-  def initConnection(): Try[Unit] = Try {
-    info("Creating database connection ...")
-
-    Class.forName(dbDriverClass)
-    connection = createConnection
-
-    info(s"Database connected with URL = $dbUrl, user = $dbUsername, password = ****")
-  }
-
-  /**
-   * Close the database's connection.
-   *
-   * @return `Success` if the closing went well, `Failure` otherwise
-   */
-  def closeConnection(): Try[Unit] = Try {
-    info("Closing database connection ...")
-    connection.close()
-    info("Database connection closed")
-  }
+  this: DatabaseAccess with DebugEnhancedLogging =>
 
   /**
    * Return the baseId of the given bagId if the latter exists.
@@ -177,25 +128,6 @@ trait Database {
   }
 
   /**
-   * Return a sequence of bagIds refering to bags that are the base of their sequence.
-   *
-   * @return the bagId of the base of every sequence
-   */
-  def getAllBaseBagIds: Try[Seq[BagId]] = {
-    val resultSet = for {
-      statement <- managed(connection.createStatement)
-      resultSet <- managed(statement.executeQuery("SELECT bagId FROM bag_info WHERE bagId = base;"))
-    } yield resultSet
-
-    resultSet
-      .map(result => Stream.continually(result.next())
-        .takeWhile(b => b)
-        .map(_ => UUID.fromString(result.getString("bagId")))
-        .toList)
-      .tried
-  }
-
-  /**
    * Add a bag relation to the database. A bag relation consists of a unique bagId (that is not yet
    * included in the database), a base bagId and a 'created' timestamp.
    *
@@ -217,85 +149,4 @@ trait Database {
       .tried
       .map(_ => ())
   }
-
-  /**
-   * Adds all bag relations in the collection to the index. If any addition fails,
-   * the whole addition is rolled back.
-   *
-   * @param iterable the bag relations to be inserted
-   * @return `Success` if the bag relations were added successfully; `Failure` otherwise
-   */
-  def bulkAddBagInfo(iterable: Iterable[BagInfo]): Try[Unit] = Try {
-    connection.setAutoCommit(false)
-
-    val res = iterable
-      .map(relation => addBagInfo(relation.bagId, relation.baseId, relation.created))
-      .collectResults
-      .map(_ => connection.commit())
-      .recoverWith {
-        case e =>
-          connection.rollback()
-          Failure(e)
-      }
-
-    connection.setAutoCommit(true)
-
-    res
-  }.flatten
-
-  /**
-   * Set all baseIds in the sequence to the base bagId of the sequence
-   *
-   * @param base the base bagId to which all baseIds in the sequence should be updated to.
-   * @return `Success` if the update was successful; `Failure` otherwise
-   */
-  def updateBaseIdRecursively(base: BagId): Try[Unit] = {
-    trace(base)
-
-    val query =
-      """
-        |UPDATE bag_info SET base = ? WHERE bagId IN (WITH RECURSIVE
-        |  bags_in_sequence(bag) AS (
-        |    VALUES(?)
-        |      UNION
-        |      SELECT bagId FROM bag_info, bags_in_sequence
-        |    WHERE bag_info.base=bags_in_sequence.bag
-        |  )
-        |SELECT * FROM bags_in_sequence);
-      """.stripMargin
-
-    managed(connection.prepareStatement(query))
-      .map(prepStatement => {
-        prepStatement.setString(1, base.toString)
-        prepStatement.setString(2, base.toString)
-        prepStatement.executeUpdate()
-      })
-      .tried
-      .map(_ => ())
-  }
-
-  /**
-   * Set all baseIds in the sequence to the base bagId of the sequence, for every baseId in the
-   * given collection. If any of the updates fails, the whole update is rolled back.
-   *
-   * @param iterable the base bagIds to which all baseIds in the sequences should be updated to.
-   * @return `Success` if the update was successful; `Failure` otherwise
-   */
-  def bulkUpdateBaseIdRecursively(iterable: Iterable[BagId]): Try[Unit] = Try {
-    connection.setAutoCommit(false)
-
-    val res = iterable
-      .map(updateBaseIdRecursively)
-      .collectResults
-      .map(_ => connection.commit())
-      .recoverWith {
-        case e =>
-          connection.rollback()
-          Failure(e)
-      }
-
-    connection.setAutoCommit(true)
-
-    res
-  }.flatten
 }

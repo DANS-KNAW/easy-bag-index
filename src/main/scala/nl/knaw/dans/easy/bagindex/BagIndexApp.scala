@@ -26,6 +26,7 @@ trait BagIndexApp extends AddBagToIndex
   with GetBagFromIndex
   with AddBagFromBagStore
   with Database
+  with DatabaseAccess
   with BagStoreAccess
   with Bagit4FacadeComponent
   with DebugEnhancedLogging {

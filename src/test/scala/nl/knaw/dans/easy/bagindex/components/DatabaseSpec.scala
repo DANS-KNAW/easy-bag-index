@@ -21,6 +21,7 @@ import nl.knaw.dans.easy.bagindex.{ BagId, BagIdNotFoundException, BagIndexDatab
 import nl.knaw.dans.lib.error.TraversableTryExtensions
 import org.joda.time.DateTime
 
+import scala.collection.immutable.Seq
 import scala.util.{ Failure, Success }
 
 class DatabaseSpec extends BagIndexDatabaseFixture with Database {
@@ -160,107 +161,4 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
       case Success(relations) => relations should contain (BagInfo(bagId, baseId, time))
     }
   }
-
-  def setupBagStoreIndexTestCase(): Map[Char, BagId] = {
-    // sequence with base F
-    val bagIdA = UUID.randomUUID()
-    val bagIdB = UUID.randomUUID()
-    val bagIdC = UUID.randomUUID()
-    val bagIdD = UUID.randomUUID()
-    val bagIdE = UUID.randomUUID()
-    val bagIdF = UUID.randomUUID()
-
-    // sequence with base Z
-    val bagIdX = UUID.randomUUID()
-    val bagIdY = UUID.randomUUID()
-    val bagIdZ = UUID.randomUUID()
-
-    def time = DateTime.now()
-
-    val relations = BagInfo(bagIdA, bagIdE, time) ::
-      BagInfo(bagIdB, bagIdA, time) ::
-      BagInfo(bagIdC, bagIdA, time) ::
-      BagInfo(bagIdD, bagIdB, time) ::
-      BagInfo(bagIdE, bagIdF, time) ::
-      BagInfo(bagIdF, bagIdF, time) ::
-      BagInfo(bagIdX, bagIdY, time) ::
-      BagInfo(bagIdY, bagIdZ, time) ::
-      BagInfo(bagIdZ, bagIdZ, time) :: Nil
-
-    bulkAddBagInfo(relations) shouldBe a[Success[_]]
-
-    Map(
-      'a' -> bagIdA,
-      'b' -> bagIdB,
-      'c' -> bagIdC,
-      'd' -> bagIdD,
-      'e' -> bagIdE,
-      'f' -> bagIdF,
-      'x' -> bagIdX,
-      'y' -> bagIdY,
-      'z' -> bagIdZ
-    )
-  }
-
-  "getAllBaseBagIds" should "return a sequence of bagIds refering to bags that are the base of their sequence" in {
-    val bags = setupBagStoreIndexTestCase()
-
-    inside(getAllBaseBagIds) {
-      case Success(bases) => bases should contain allOf(bags('f'), bags('z'))
-    }
-  }
-
-  "bulkAddBagInfo" should "insert multiple bag relations into the database in one commit" in {
-    // the call to bulkAddBagInfo is done during the setup process
-    val bag1 :: bag2 :: tail = setupBagStoreIndexTestCase().values.toList
-
-    inside(getAllBagInfos) {
-      case Success(rels) => rels.map(_.bagId) should contain allOf(bag1, bag2, tail:_*)
-    }
-  }
-
-  // TODO not sure how to test failure and rollback for bulkAddbagInfo
-
-  "updateBaseIdRecursively" should "set all baseIds in the index to the base bagId of the sequence" in {
-    val bags = setupBagStoreIndexTestCase()
-
-    updateBaseIdRecursively(bags('f')) shouldBe a[Success[_]]
-
-    inside(getAllBagInfos) {
-      case Success(rels) => rels.map(rel => (rel.bagId, rel.baseId)) should contain allOf(
-        (bags('a'), bags('f')),
-        (bags('b'), bags('f')),
-        (bags('c'), bags('f')),
-        (bags('d'), bags('f')),
-        (bags('e'), bags('f')),
-        (bags('f'), bags('f')),
-        // x, y and z should be untouched
-        (bags('x'), bags('y')),
-        (bags('y'), bags('z')),
-        (bags('z'), bags('z'))
-      )
-    }
-  }
-
-  "bulkUpdateBaseIdRecursively" should "set all baseIds in the index to the base bagId of the sequence, for each element in the collection of bagIds" in {
-    val bags = setupBagStoreIndexTestCase()
-
-    bulkUpdateBaseIdRecursively(bags('f') :: bags('z') :: Nil) shouldBe a[Success[_]]
-
-    inside(getAllBagInfos) {
-      case Success(rels) => rels.map(rel => (rel.bagId, rel.baseId)) should contain allOf(
-        (bags('a'), bags('f')),
-        (bags('b'), bags('f')),
-        (bags('c'), bags('f')),
-        (bags('d'), bags('f')),
-        (bags('e'), bags('f')),
-        (bags('f'), bags('f')),
-        (bags('x'), bags('z')),
-        (bags('y'), bags('z')),
-        (bags('z'), bags('z'))
-      )
-    }
-  }
-
-  // TODO not sure how to test failure and rollback for bulkUpdateBaseIdRecursively
 }
