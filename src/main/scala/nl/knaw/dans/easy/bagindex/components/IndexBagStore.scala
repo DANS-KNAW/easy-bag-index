@@ -17,7 +17,7 @@ package nl.knaw.dans.easy.bagindex.components
 
 import java.nio.file.Path
 
-import nl.knaw.dans.easy.bagindex.{ BagId, BagRelation }
+import nl.knaw.dans.easy.bagindex.{ BagId, BagInfo }
 
 import scala.collection.immutable.Seq
 import scala.util.Try
@@ -32,31 +32,31 @@ trait IndexBagStore {
    */
   def indexBagStore(): Try[Unit] = {
     // lock db table
-    // walk over bagstore and insert each bag into the BagRelation table 'as-is'
-    //     INSERT INTO BagRelation VALUES (<bagId>, <baseId>, <created>);
+    // walk over bagstore and insert each bag into the bag_info table 'as-is'
+    //     INSERT INTO bag_info VALUES (<bagId>, <baseId>, <created>);
     // get all base bagIds
-    //     SELECT bagId FROM BagRelation WHERE bagId = base;
+    //     SELECT bagId FROM bag_info WHERE bagId = base;
     // perform update query for each base bagId
-    //     UPDATE BagRelation SET base = '<base bagId>' WHERE bagId IN (WITH RECURSIVE
+    //     UPDATE bag_info SET base = '<base bagId>' WHERE bagId IN (WITH RECURSIVE
     //       bags_in_sequence(bag) AS (
     //         VALUES('<base bagId>')
     //           UNION
-    //           SELECT bagId FROM BagRelation, bags_in_sequence
-    //         WHERE BagRelation.base=bags_in_sequence.bag
+    //           SELECT bagId FROM bag_info, bags_in_sequence
+    //         WHERE bag_info.base=bags_in_sequence.bag
     //       )
     //     SELECT * FROM bags_in_sequence);
     // unlock db table
 
     for {
       bags: Seq[(BagId, Path)] <- traverse
-      infos: Seq[BagRelation] = bags.map { case (bagId, path) =>
+      infos: Seq[BagInfo] = bags.map { case (bagId, path) =>
         bagFacade.getIndexRelevantBagInfo(path).get match { // TODO is there a better way to fail fast?
-          case (Some(baseDir), Some(created)) => BagRelation(bagId, baseDir, created)
-          case (None, Some(created)) => BagRelation(bagId, bagId, created)
+          case (Some(baseDir), Some(created)) => BagInfo(bagId, baseDir, created)
+          case (None, Some(created)) => BagInfo(bagId, bagId, created)
           case _ => throw new Exception(s"could not index bag $bagId")
         }
       }
-      _ <- bulkAddBagRelation(infos)
+      _ <- bulkAddBagInfo(infos)
       bases: Seq[BagId] <- getAllBaseBagIds
       _ <- bulkUpdateBaseIdRecursively(bases)
     } yield ()

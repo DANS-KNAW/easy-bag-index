@@ -17,7 +17,7 @@ package nl.knaw.dans.easy.bagindex.components
 
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagindex._
+import nl.knaw.dans.easy.bagindex.{ BagId, BagIdNotFoundException, BagIndexDatabaseFixture, BagInfo }
 import nl.knaw.dans.lib.error.TraversableTryExtensions
 import org.joda.time.DateTime
 
@@ -34,7 +34,7 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     )
 
     bagIds.zip(times)
-      .map { case (bagId, time) => addBagRelation(bagId, baseId, time) }
+      .map { case (bagId, time) => addBagInfo(bagId, baseId, time) }
       .collectResults shouldBe a[Success[_]]
 
     for (bagId <- bagIds) {
@@ -56,7 +56,7 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     val bagId = UUID.randomUUID()
     val time = DateTime.now()
 
-    addBagRelation(bagId, bagId, time) shouldBe a[Success[_]]
+    addBagInfo(bagId, bagId, time) shouldBe a[Success[_]]
 
     inside(getAllBagsWithBase(bagId)) {
       case Success(ids) => ids should (have size 1 and contain only bagId)
@@ -83,7 +83,7 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     List(
       (bagIds1.zip(times1), baseId1),
       (bagIds2.zip(times2), baseId2))
-      .flatMap { case (xs, base) => xs.map { case (bagId, time) => addBagRelation(bagId, base, time) }}
+      .flatMap { case (xs, base) => xs.map { case (bagId, time) => addBagInfo(bagId, base, time) }}
       .collectResults shouldBe a[Success[_]]
 
     inside(getAllBagsWithBase(baseId1)) {
@@ -94,7 +94,7 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     }
   }
 
-  "getBagRelation" should "return the relation object for the given bagId" in {
+  "getBagInfo" should "return the relation object for the given bagId" in {
     val bagIds@(baseId :: _) = List.fill(3)(UUID.randomUUID())
     val times = List(
       DateTime.parse("1992-07-30T16:00:00"),
@@ -103,12 +103,12 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     )
 
     bagIds.zip(times)
-      .map { case (bagId, time) => addBagRelation(bagId, baseId, time) }
+      .map { case (bagId, time) => addBagInfo(bagId, baseId, time) }
       .collectResults shouldBe a[Success[_]]
 
     for ((bagId, created) <- bagIds.zip(times)) {
-      inside(getBagRelation(bagId)) {
-        case Success(BagRelation(bag, base, time)) =>
+      inside(getBagInfo(bagId)) {
+        case Success(BagInfo(bag, base, time)) =>
           bag shouldBe bagId
           base shouldBe baseId
           time shouldBe created
@@ -119,12 +119,12 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
   it should "return a BagIdNotFoundException when the given bagId does not exist in the database" in {
     // Note: the database is empty at this point!
     val someBagId = UUID.randomUUID()
-    inside(getBagRelation(someBagId)) {
+    inside(getBagInfo(someBagId)) {
       case Failure(BagIdNotFoundException(id)) => id shouldBe someBagId
     }
   }
 
-  "addBagRelation" should "insert a new bag relation into the database" in {
+  "addBagInfo" should "insert a new bag relation into the database" in {
     val bagIds@(baseId :: _) = List.fill(3)(UUID.randomUUID())
     val times = List(
       DateTime.parse("1992-07-30T16:00:00"),
@@ -133,12 +133,12 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     )
 
     bagIds.zip(times)
-      .map { case (bagId, time) => addBagRelation(bagId, baseId, time) }
+      .map { case (bagId, time) => addBagInfo(bagId, baseId, time) }
       .collectResults shouldBe a[Success[_]]
 
-    val rel1 :: rel2 :: rels = bagIds.zip(times).map { case (bagId, time) => BagRelation(bagId, baseId, time) }
+    val rel1 :: rel2 :: rels = bagIds.zip(times).map { case (bagId, time) => BagInfo(bagId, baseId, time) }
 
-    inside(getAllBagRelations) {
+    inside(getAllBagInfos) {
       case Success(relations) => relations should contain allOf(rel1, rel2, rels: _*)
     }
   }
@@ -148,16 +148,16 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     val baseId = UUID.randomUUID()
     val time = DateTime.now()
 
-    val result1 = addBagRelation(bagId, baseId, time)
-    val result2 = addBagRelation(bagId, baseId, time)
+    val result1 = addBagInfo(bagId, baseId, time)
+    val result2 = addBagInfo(bagId, baseId, time)
 
     result1 shouldBe a[Success[_]]
     inside(result2) {
       case Failure(e) => e.getMessage should include ("UNIQUE constraint failed")
     }
 
-    inside(getAllBagRelations) {
-      case Success(relations) => relations should contain (BagRelation(bagId, baseId, time))
+    inside(getAllBagInfos) {
+      case Success(relations) => relations should contain (BagInfo(bagId, baseId, time))
     }
   }
 
@@ -177,17 +177,17 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
 
     def time = DateTime.now()
 
-    val relations = BagRelation(bagIdA, bagIdE, time) ::
-      BagRelation(bagIdB, bagIdA, time) ::
-      BagRelation(bagIdC, bagIdA, time) ::
-      BagRelation(bagIdD, bagIdB, time) ::
-      BagRelation(bagIdE, bagIdF, time) ::
-      BagRelation(bagIdF, bagIdF, time) ::
-      BagRelation(bagIdX, bagIdY, time) ::
-      BagRelation(bagIdY, bagIdZ, time) ::
-      BagRelation(bagIdZ, bagIdZ, time) :: Nil
+    val relations = BagInfo(bagIdA, bagIdE, time) ::
+      BagInfo(bagIdB, bagIdA, time) ::
+      BagInfo(bagIdC, bagIdA, time) ::
+      BagInfo(bagIdD, bagIdB, time) ::
+      BagInfo(bagIdE, bagIdF, time) ::
+      BagInfo(bagIdF, bagIdF, time) ::
+      BagInfo(bagIdX, bagIdY, time) ::
+      BagInfo(bagIdY, bagIdZ, time) ::
+      BagInfo(bagIdZ, bagIdZ, time) :: Nil
 
-    bulkAddBagRelation(relations) shouldBe a[Success[_]]
+    bulkAddBagInfo(relations) shouldBe a[Success[_]]
 
     Map(
       'a' -> bagIdA,
@@ -210,23 +210,23 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     }
   }
 
-  "bulkAddBagRelation" should "insert multiple bag relations into the database in one commit" in {
-    // the call to bulkAddBagRelation is done during the setup process
+  "bulkAddBagInfo" should "insert multiple bag relations into the database in one commit" in {
+    // the call to bulkAddBagInfo is done during the setup process
     val bag1 :: bag2 :: tail = setupBagStoreIndexTestCase().values.toList
 
-    inside(getAllBagRelations) {
+    inside(getAllBagInfos) {
       case Success(rels) => rels.map(_.bagId) should contain allOf(bag1, bag2, tail:_*)
     }
   }
 
-  // TODO not sure how to test failure and rollback for bulkAddBagRelation
+  // TODO not sure how to test failure and rollback for bulkAddbagInfo
 
   "updateBaseIdRecursively" should "set all baseIds in the index to the base bagId of the sequence" in {
     val bags = setupBagStoreIndexTestCase()
 
     updateBaseIdRecursively(bags('f')) shouldBe a[Success[_]]
 
-    inside(getAllBagRelations) {
+    inside(getAllBagInfos) {
       case Success(rels) => rels.map(rel => (rel.bagId, rel.baseId)) should contain allOf(
         (bags('a'), bags('f')),
         (bags('b'), bags('f')),
@@ -247,7 +247,7 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
 
     bulkUpdateBaseIdRecursively(bags('f') :: bags('z') :: Nil) shouldBe a[Success[_]]
 
-    inside(getAllBagRelations) {
+    inside(getAllBagInfos) {
       case Success(rels) => rels.map(rel => (rel.bagId, rel.baseId)) should contain allOf(
         (bags('a'), bags('f')),
         (bags('b'), bags('f')),

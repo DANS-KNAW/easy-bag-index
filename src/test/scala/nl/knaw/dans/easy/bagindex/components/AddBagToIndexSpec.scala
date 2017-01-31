@@ -17,7 +17,7 @@ package nl.knaw.dans.easy.bagindex.components
 
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagindex.{ BagIdNotFoundException, BagIndexDatabaseFixture, BagRelation }
+import nl.knaw.dans.easy.bagindex.{ BagIdNotFoundException, BagIndexDatabaseFixture, BagInfo }
 
 import scala.util.{ Failure, Success }
 
@@ -30,8 +30,8 @@ class AddBagToIndexSpec extends BagIndexDatabaseFixture with AddBagToIndex {
       case Success(superBase) => superBase shouldBe bagId
     }
 
-    inside(getAllBagRelations) {
-      case Success(relations) => relations.map { case BagRelation(id, base, _) => (id, base) } should contain ((bagId, bagId))
+    inside(getAllBagInfos) {
+      case Success(relations) => relations.map { case BagInfo(id, base, _) => (id, base) } should contain ((bagId, bagId))
     }
 
     bagId
@@ -45,8 +45,8 @@ class AddBagToIndexSpec extends BagIndexDatabaseFixture with AddBagToIndex {
       case Success(superBase) => superBase shouldBe baseId
     }
 
-    inside(getAllBagRelations) {
-      case Success(relations) => relations.map { case BagRelation(id, base, _) => (id, base) } should contain ((bagId, baseId))
+    inside(getAllBagInfos) {
+      case Success(relations) => relations.map { case BagInfo(id, base, _) => (id, base) } should contain ((bagId, baseId))
     }
 
     (bagId, baseId)
@@ -60,8 +60,8 @@ class AddBagToIndexSpec extends BagIndexDatabaseFixture with AddBagToIndex {
       case Success(superBase) => superBase shouldBe superBaseId
     }
 
-    inside(getAllBagRelations) {
-      case Success(relations) => relations.map { case BagRelation(id, base, _) => (id, base) } should contain ((bagId, superBaseId))
+    inside(getAllBagInfos) {
+      case Success(relations) => relations.map { case BagInfo(id, base, _) => (id, base) } should contain ((bagId, superBaseId))
     }
 
     (bagId, baseId, superBaseId)
@@ -84,7 +84,7 @@ class AddBagToIndexSpec extends BagIndexDatabaseFixture with AddBagToIndex {
     val baseId = UUID.randomUUID()
 
     // assert that the base is not yet present in the database
-    inside(getAllBagRelations) {
+    inside(getAllBagInfos) {
       case Success(relations) => relations.map(_.bagId) should not contain baseId
     }
 

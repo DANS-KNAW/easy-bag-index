@@ -25,9 +25,13 @@ import org.joda.time.DateTime
 import scala.collection.JavaConverters.mapAsScalaMapConverter
 import scala.util.{ Failure, Success, Try }
 
+// TODO: (see also: easy-bag-store, easy-archive-bag) Candidate for new library easy-bagit-lib (a facade over the LOC lib)
 trait BagFacadeComponent {
 
   val bagFacade: BagFacade
+
+  val IS_VERSION_OF = "Is-Version-Of"
+  val CREATED = "Created"
 
   trait BagFacade {
     def getIndexRelevantBagInfo(bagDir: Path): Try[(Option[BaseId], Option[DateTime])]
@@ -38,9 +42,6 @@ trait BagFacadeComponent {
 
 trait Bagit4FacadeComponent extends BagFacadeComponent {
   class Bagit4Facade(bagFactory: BagFactory = new BagFactory) extends BagFacade {
-
-    val IS_VERSION_OF = "Is-Version-Of"
-    val CREATED = "Created"
 
     def getIndexRelevantBagInfo(bagDir: Path): Try[(Option[BaseId], Option[DateTime])] = {
       for {
