@@ -39,8 +39,7 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
       |Usage:
       |
       |$printedName \\
-      |${_________}  | add [bagId]
-      |${_________}  | index
+      |${_________}  | index [bagId]
       |
       |Options:
     """.stripMargin)
