@@ -86,6 +86,31 @@ class IndexBagStoreDatabaseSpec extends BagIndexDatabaseFixture with IndexBagSto
     }
   }
 
+  "clearIndex" should "delete all data from the bag-index" in {
+    inside(getAllBagInfos) {
+      case Success(data) => data should not be empty
+    }
+
+    clearIndex() shouldBe a[Success[_]]
+
+    inside(getAllBagInfos) {
+      case Success(data) => data shouldBe empty
+    }
+  }
+
+  it should "succeed if clearing an empty bag-index" in {
+    inside(getAllBagInfos) {
+      case Success(data) => data should not be empty
+    }
+
+    clearIndex() shouldBe a[Success[_]]
+    clearIndex() shouldBe a[Success[_]]
+
+    inside(getAllBagInfos) {
+      case Success(data) => data shouldBe empty
+    }
+  }
+
   "updateBagsInSequence" should "update all bags in the sequence to have the newBaseId as their base in the database" in {
     val bags = setupBagStoreIndexTestCase()
 

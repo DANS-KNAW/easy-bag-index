@@ -38,6 +38,8 @@ trait IndexBagStore {
    */
   def indexBagStore(): Try[Unit] = {
     for {
+      // delete all data from the bag-index
+      _ <- clearIndex()
       // walk over bagstore
       bags <- traverse
       // extract data from bag-info.txt
@@ -155,6 +157,16 @@ trait IndexBagStoreDatabase {
 
     res
   }.flatten
+
+  /**
+   * Delete all data from the bag-index.
+   *
+   * @return `Success` if all data was deleted; `Failure` otherwise
+   */
+  def clearIndex(): Try[Unit] = Try {
+    managed(connection.createStatement)
+      .acquireAndGet(_.executeUpdate("DELETE FROM bag_info;"))
+  }
 
   /**
    * Update all records for which the bagId is in the given `bagSequence` to have `newBaseId`
