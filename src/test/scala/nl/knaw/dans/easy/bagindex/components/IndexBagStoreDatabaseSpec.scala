@@ -1,11 +1,26 @@
+/**
+ * Copyright (C) 2017 DANS - Data Archiving and Networked Services (info@dans.knaw.nl)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package nl.knaw.dans.easy.bagindex.components
 
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagindex.{ BagId, BagIndexDatabaseFixture, BagInfo }
 import org.joda.time.DateTime
+import nl.knaw.dans.lib.error.TraversableTryExtensions
 
-import scala.collection.immutable.Seq
 import scala.util.Success
 
 class IndexBagStoreDatabaseSpec extends BagIndexDatabaseFixture with IndexBagStoreDatabase with Database {
@@ -48,7 +63,7 @@ class IndexBagStoreDatabaseSpec extends BagIndexDatabaseFixture with IndexBagSto
       BagInfo(bagIdY, bagIdZ, dateY) ::
       BagInfo(bagIdZ, bagIdZ, dateZ) :: Nil
 
-    bulkAddBagInfo(relations) shouldBe a[Success[_]]
+    relations.map(info => addBagInfo(info.bagId, info.baseId, info.created)).collectResults shouldBe a[Success[_]]
 
     Map(
       'a' -> (bagIdA, dateA),
@@ -133,42 +148,4 @@ class IndexBagStoreDatabaseSpec extends BagIndexDatabaseFixture with IndexBagSto
       )
     }
   }
-
-  "bulkUpdateBagsInSequence" should "update all bags in all given sequences to have the newBaseId as their base in the database" in {
-    val bags = setupBagStoreIndexTestCase()
-
-    val changes: Seq[(BagId, Seq[BagId])] = List(
-      bags('g')._1 -> getAllBagsInSequence(bags('f')._1).get.map(_._1),
-      bags('z')._1 -> getAllBagsInSequence(bags('z')._1).get.map(_._1)
-    )
-    bulkUpdateBagsInSequence(changes) shouldBe a[Success[_]]
-
-    inside(getAllBagInfos) {
-      case Success(rels) => rels.map(rel => (rel.bagId, rel.baseId)) should contain allOf(
-        (bags('a')._1, bags('g')._1),
-        (bags('b')._1, bags('g')._1),
-        (bags('c')._1, bags('g')._1),
-        (bags('d')._1, bags('g')._1),
-        (bags('e')._1, bags('g')._1),
-        (bags('f')._1, bags('g')._1),
-        (bags('g')._1, bags('g')._1),
-        (bags('x')._1, bags('z')._1),
-        (bags('y')._1, bags('z')._1),
-        (bags('z')._1, bags('z')._1)
-      )
-    }
-  }
-
-  // TODO not sure how to test failure and rollback for bulkUpdateBagsInSequence
-
-  "bulkAddBagInfo" should "insert multiple bag relations into the database in one commit" in {
-    // the call to bulkAddBagInfo is done during the setup process
-    val bag1 :: bag2 :: tail = setupBagStoreIndexTestCase().values.toList
-
-    inside(getAllBagInfos) {
-      case Success(rels) => rels.map(_.bagId) should contain allOf(bag1._1, bag2._1, tail.map(_._1):_*)
-    }
-  }
-
-  // TODO not sure how to test failure and rollback for bulkAddbagInfo
 }

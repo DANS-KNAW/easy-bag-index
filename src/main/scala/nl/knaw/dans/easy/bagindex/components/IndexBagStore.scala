@@ -15,9 +15,10 @@
  */
 package nl.knaw.dans.easy.bagindex.components
 
+import java.sql.{ SQLException, Savepoint }
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagindex.{ BagId, BagInfo, BaseId, dateTimeFormatter }
+import nl.knaw.dans.easy.bagindex.{ BagId, BagInfo, BaseId, _ }
 import nl.knaw.dans.lib.error.TraversableTryExtensions
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
@@ -27,7 +28,7 @@ import scala.collection.immutable.Seq
 import scala.util.{ Failure, Try }
 
 trait IndexBagStore {
-  this: BagStoreAccess with BagFacadeComponent with IndexBagStoreDatabase =>
+  this: BagStoreAccess with BagFacadeComponent with IndexBagStoreDatabase with Database =>
 
   implicit private def dateTimeOrdering: Ordering[DateTime] = Ordering.fromLessThan(_ isBefore _)
 
@@ -38,33 +39,45 @@ trait IndexBagStore {
    */
   def indexBagStore(): Try[Unit] = {
     for {
-      // delete all data from the bag-index
-      _ <- clearIndex()
-      // walk over bagstore
-      bags <- traverse
-      // extract data from bag-info.txt
-      infos = bags.map { case (bagId, path) =>
-        bagFacade.getIndexRelevantBagInfo(path).get match {
-          // TODO is there a better way to fail fast?
-          case (Some(baseDir), Some(created)) => BagInfo(bagId, baseDir, created)
-          case (None, Some(created)) => BagInfo(bagId, bagId, created)
-          case _ => throw new Exception(s"could not index bag $bagId")
+      savepoint <- startTransaction
+      action = for {
+        // delete all data from the bag-index
+        _ <- clearIndex()
+        // walk over bagstore
+        bags <- traverse
+        // extract data from bag-info.txt
+        infos = bags.map {
+          case (bagId, path) =>
+            bagFacade.getIndexRelevantBagInfo(path).get match {
+              // TODO is there a better way to fail fast?
+              case (Some(baseDir), Some(created)) => BagInfo(bagId, baseDir, created)
+              case (None, Some(created)) => BagInfo(bagId, bagId, created)
+              case _ => throw new Exception(s"could not index bag $bagId")
+            }
         }
-      }
-      // insert data 'as-is'
-      _ <- bulkAddBagInfo(infos)
-      // get all base bagIds
-      bases <- getAllBaseBagIds
-      // get the bags in the same collection as the base bagId and calculate the oldest one
-      oldestBagInSequence <- bases.map(baseId => {
-        for {
-          collection <- getAllBagsInSequence(baseId)
-          (oldestBagId, _) = collection.minBy { case (_, created) => created }
-          bagIds = collection.map { case (bagId, _) => bagId }
-        } yield (oldestBagId, bagIds)
-      }).collectResults
-      // perform update query for each collection
-      _ <- bulkUpdateBagsInSequence(oldestBagInSequence)
+        // insert data 'as-is'
+        _ <- Try {
+          // TODO is there a better way to fail fast?
+          // - Richard: "Yes, there is, because you're working on a Stream. I'll add it to the dans-scala-lib as soon as I have time for it."
+          infos.foreach(relation => addBagInfo(relation.bagId, relation.baseId, relation.created).get)
+        }
+        // get all base bagIds
+        bases <- getAllBaseBagIds
+        // get the bags in the same collection as the base bagId and calculate the oldest one
+        oldestBagInSequence <- bases.map(baseId => {
+          for {
+            collection <- getAllBagsInSequence(baseId)
+            (oldestBagId, _) = collection.minBy { case (_, created) => created }
+            bagIds = collection.map { case (bagId, _) => bagId }
+          } yield (oldestBagId, bagIds)
+        }).collectResults
+        // perform update query for each collection
+        _ <- Try {
+          // TODO is there a better way to fail fast?
+          oldestBagInSequence.foreach { case (oldest, sequence) => updateBagsInSequence(oldest, sequence).get }
+        }
+      } yield ()
+      _ <- completeTransaction(action, savepoint)
     } yield ()
   }
 }
@@ -75,7 +88,38 @@ trait IndexBagStore {
  * usual `Database` component.
  */
 trait IndexBagStoreDatabase {
-  this: DatabaseAccess with Database with DebugEnhancedLogging =>
+  this: DatabaseAccess with DebugEnhancedLogging =>
+
+  /**
+   * Start a transaction and return a `Savepoint` for potential rollback.
+   *
+   * @return a `Savepoint`
+   */
+  def startTransaction: Try[Savepoint] = Try {
+    connection.setAutoCommit(false)
+    connection.setSavepoint()
+  }
+
+  /**
+   * Complete a transaction by either committing the queries if `result` is a `Success`,
+   * or by rolling back the changes if `result` is a `Failure`.
+   *
+   * @param result the result of the database actions taken thusfar
+   * @param savepoint the database status to which to roll back in case `result` is a `Failure`
+   * @tparam T the type of result
+   * @return the same result if completing the transaction was successful; `Failure` otherwise
+   */
+  def completeTransaction[T](result: Try[T], savepoint: Savepoint): Try[T] = {
+    result
+      .ifFailure {
+        case e: SQLException => Try { connection.rollback(savepoint) }.flatMap(_ => Failure(e))
+      }
+      .ifSuccess(_ => {
+        connection.commit()
+        connection.setAutoCommit(true)
+        connection.releaseSavepoint(savepoint)
+      })
+  }
 
   /**
    * Return a sequence of bagIds refering to bags that are the base of their sequence.
@@ -134,31 +178,6 @@ trait IndexBagStoreDatabase {
   }
 
   /**
-   * Adds all bag relations in the collection to the index. If any addition fails,
-   * the whole addition is rolled back.
-   *
-   * @param iterable the bag relations to be inserted
-   * @return `Success` if the bag relations were added successfully; `Failure` otherwise
-   */
-  def bulkAddBagInfo(iterable: Iterable[BagInfo]): Try[Unit] = Try {
-    connection.setAutoCommit(false)
-
-    val res = iterable
-      .map(relation => addBagInfo(relation.bagId, relation.baseId, relation.created))
-      .collectResults
-      .map(_ => connection.commit())
-      .recoverWith {
-        case e =>
-          connection.rollback()
-          Failure(e)
-      }
-
-    connection.setAutoCommit(true)
-
-    res
-  }.flatten
-
-  /**
    * Delete all data from the bag-index.
    *
    * @return `Success` if all data was deleted; `Failure` otherwise
@@ -189,29 +208,4 @@ trait IndexBagStoreDatabase {
       .tried
       .map(_ => ())
   }
-
-  /**
-   * Updates all bags in a sequence with the given baseId. If any update fails,
-   * the whole update is rolled back.
-   *
-   * @param iterable the update info
-   * @return `Success` if the updates were successful; `Failure` otherwise
-   */
-  def bulkUpdateBagsInSequence(iterable: Iterable[(BaseId, Seq[BagId])]): Try[Unit] = Try {
-    connection.setAutoCommit(false)
-
-    val res = iterable
-      .map((updateBagsInSequence _).tupled)
-      .collectResults
-      .map(_ => connection.commit())
-      .recoverWith {
-        case e =>
-          connection.rollback()
-          Failure(e)
-      }
-
-    connection.setAutoCommit(true)
-
-    res
-  }.flatten
 }

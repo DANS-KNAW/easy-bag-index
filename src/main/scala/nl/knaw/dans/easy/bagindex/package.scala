@@ -57,6 +57,26 @@ package object bagindex {
         case Failure(throwable) => handle(throwable)
       }
     }
+
+    def ifSuccess(f: T => Unit): Try[T] = {
+      t match {
+        case success@Success(x) => Try {
+          f(x)
+          return success
+        }
+        case e => e
+      }
+    }
+
+    def ifFailure(f: PartialFunction[Throwable, Unit]): Try[T] = {
+      t match {
+        case failure@Failure(e) if f.isDefinedAt(e) => Try {
+          f(e)
+          return failure
+        }
+        case x => x
+      }
+    }
   }
 
   /**
