@@ -158,8 +158,7 @@ trait IndexBagStoreDatabase {
         |    SELECT bagId FROM bag_info, bags_in_sequence
         |     WHERE bag_info.base=bags_in_sequence.bag
         |  )
-        |SELECT bagId, created FROM bag_info
-        | WHERE bag_info.bagId IN bags_in_sequence;
+        |SELECT bagId, created FROM bag_info JOIN bags_in_sequence ON bag_info.bagId=bags_in_sequence.bag;
       """.stripMargin
 
     val resultSet = for {
