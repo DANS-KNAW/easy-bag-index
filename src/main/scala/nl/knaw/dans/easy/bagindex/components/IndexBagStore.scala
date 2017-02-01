@@ -117,7 +117,6 @@ trait IndexBagStoreDatabase {
       .ifSuccess(_ => {
         connection.commit()
         connection.setAutoCommit(true)
-        connection.releaseSavepoint(savepoint)
       })
   }
 
