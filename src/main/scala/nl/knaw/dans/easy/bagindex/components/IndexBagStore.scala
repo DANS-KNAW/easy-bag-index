@@ -151,14 +151,13 @@ trait IndexBagStoreDatabase {
 
     val query =
       """
-        |WITH RECURSIVE
-        |  bags_in_sequence(bag) AS (
+        |WITH RECURSIVE bags_in_sequence(bag) AS (
         |    VALUES(?)
-        |    UNION
-        |    SELECT bagId FROM bag_info, bags_in_sequence
-        |     WHERE bag_info.base=bags_in_sequence.bag
-        |  )
-        |SELECT bagId, created FROM bag_info JOIN bags_in_sequence ON bag_info.bagId=bags_in_sequence.bag;
+        |    UNION SELECT bagId
+        |          FROM bag_info JOIN bags_in_sequence ON bag_info.base = bags_in_sequence.bag
+        |)
+        |SELECT bagId, created
+        |FROM bag_info JOIN bags_in_sequence ON bag_info.bagId = bags_in_sequence.bag;
       """.stripMargin
 
     val resultSet = for {
