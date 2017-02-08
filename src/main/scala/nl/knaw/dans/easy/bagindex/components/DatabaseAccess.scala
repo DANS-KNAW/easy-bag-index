@@ -22,6 +22,7 @@ import nl.knaw.dans.easy.bagindex._
 import org.apache.commons.dbcp2.BasicDataSource
 import resource._
 
+import scala.util.control.NonFatal
 import scala.util.{ Failure, Try }
 
 trait DatabaseAccess {
@@ -57,6 +58,7 @@ trait DatabaseAccess {
     info("Database connection closed")
   }
 
+  // TODO test and document
   def doTransaction[T](f: Connection => Try[T]): Try[T] = {
     managed(pool.getConnection)
       .map(connection => {
@@ -69,7 +71,7 @@ trait DatabaseAccess {
             connection.setAutoCommit(true)
           })
           .recoverWith {
-            case e: SQLException => Try { connection.rollback(savepoint) }.flatMap(_ => Failure(e))
+            case NonFatal(e) => Try { connection.rollback(savepoint) }.flatMap(_ => Failure(e))
           }
       })
       .tried
