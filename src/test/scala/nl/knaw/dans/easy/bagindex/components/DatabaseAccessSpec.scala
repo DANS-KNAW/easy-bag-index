@@ -26,25 +26,22 @@ import scala.util.{ Failure, Success, Try }
 class DatabaseAccessSpec extends BagIndexDatabaseFixture with Database {
 
   "doTransaction" should "succeed when the arg returns a Success" in {
-    inside(doTransaction(_ => Success("foo"))) {
-      case Success(s) => s shouldBe "foo"
-    }
+    doTransaction(_ => Success("foo")) should matchPattern { case Success("foo") => }
   }
 
   it should "fail when the arg function returns a Failure" in {
     inside(doTransaction(_ => Failure(new Exception("error message")))) {
-      case Failure(e) => e.getMessage shouldBe "error message"
+      case Failure(e) => e should have message "error message"
     }
   }
 
   it should "fail when the arg function closes the connection" in {
-    inside(doTransaction(c => Try { c.close() })) {
-      case Failure(e) => e shouldBe a[SQLException]
-    }
+    doTransaction(c => Try { c.close() }) should matchPattern { case Failure(_: SQLException) => }
   }
 
   it should "rollback changes made to the database whenever an error occurs in the arg function" in {
     val bagId = UUID.randomUUID()
+    val doi = "10.5072/dans-x6f-kf66"
 
     val originalContent = getAllBagInfos
     inside(originalContent) {
@@ -52,7 +49,7 @@ class DatabaseAccessSpec extends BagIndexDatabaseFixture with Database {
     }
 
     inside(doTransaction(implicit c => {
-      val add = addBagInfo(bagId, bagId, DateTime.now)(c)
+      val add = addBagInfo(bagId, bagId, DateTime.now, doi)(c)
       add shouldBe a[Success[_]]
 
       // check that the bag was added properly
@@ -64,7 +61,7 @@ class DatabaseAccessSpec extends BagIndexDatabaseFixture with Database {
       // based on this failure a rollback should happen
       Failure(new Exception("random exception"))
     })) {
-      case Failure(e) => e.getMessage shouldBe "random exception"
+      case Failure(e) => e should have message "random exception"
     }
 
     // the current content should equal the old content
@@ -77,14 +74,15 @@ class DatabaseAccessSpec extends BagIndexDatabaseFixture with Database {
 
   it should "rollback changes made to the database whenever an error occurs in the post arg func phase" in {
     val bagId = UUID.randomUUID()
+    val doi = "10.5072/dans-x6f-kf66"
 
     val originalContent = getAllBagInfos
     inside(originalContent) {
       case Success(infos) => infos.map(_.bagId) should not contain bagId
     }
 
-    inside(doTransaction(implicit c => {
-      val add = addBagInfo(bagId, bagId, DateTime.now)(c)
+    doTransaction(implicit c => {
+      val add = addBagInfo(bagId, bagId, DateTime.now, doi)(c)
       add shouldBe a[Success[_]]
 
       // check that the bag was added properly
@@ -97,9 +95,7 @@ class DatabaseAccessSpec extends BagIndexDatabaseFixture with Database {
       c.close()
 
       Success(())
-    })) {
-      case Failure(e) => e shouldBe a[SQLException]
-    }
+    }) should matchPattern { case Failure(_: SQLException) => }
 
     // the current content should equal the old content
     val newContent = getAllBagInfos

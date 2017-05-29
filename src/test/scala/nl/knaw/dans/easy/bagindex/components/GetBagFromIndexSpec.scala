@@ -28,8 +28,9 @@ class GetBagFromIndexSpec extends BagIndexDatabaseFixture with GetBagFromIndex {
   "getBagSequence" should "return a sequence with only the baseId when there are no child bags declared" in {
     val bagId = UUID.randomUUID()
     val time = DateTime.now()
+    val doi = "10.5072/dans-x6f-kf66"
 
-    addBagInfo(bagId, bagId, time) shouldBe a[Success[_]]
+    addBagInfo(bagId, bagId, time, doi) shouldBe a[Success[_]]
 
     inside(getBagSequence(bagId)) {
       case Success(ids) => ids should (have size 1 and contain only bagId)
@@ -43,9 +44,10 @@ class GetBagFromIndexSpec extends BagIndexDatabaseFixture with GetBagFromIndex {
       DateTime.parse("2004-01-01"),
       DateTime.now()
     )
+    val dois = List("10.5072/dans-x6f-kf6x", "10.5072/dans-x6f-kf66", "10.5072/dans-y7g-lg77")
 
-    bagIds.zip(times)
-      .map { case (bagId, time) => addBagInfo(bagId, baseId, time) }
+    (bagIds, times, dois).zipped.toList
+      .map { case (bagId, time, doi) => addBagInfo(bagId, baseId, time, doi) }
       .collectResults shouldBe a[Success[_]]
 
     inside(getBagSequence(baseId)) {
@@ -60,9 +62,10 @@ class GetBagFromIndexSpec extends BagIndexDatabaseFixture with GetBagFromIndex {
       DateTime.parse("2004-01-01"),
       DateTime.now()
     )
+    val dois = List("10.5072/dans-x6f-kf6x", "10.5072/dans-x6f-kf66", "10.5072/dans-y7g-lg77")
 
-    bagIds.zip(times)
-      .map { case (bagId, time) => addBagInfo(bagId, baseId, time) }
+    (bagIds, times, dois).zipped.toList
+      .map { case (bagId, time, doi) => addBagInfo(bagId, baseId, time, doi) }
       .collectResults shouldBe a[Success[_]]
 
     for (bagId <- bagIds) {
@@ -75,8 +78,6 @@ class GetBagFromIndexSpec extends BagIndexDatabaseFixture with GetBagFromIndex {
   it should "fail if the given bagId is not present in the database" in {
     // Note: the database is empty at this point!
     val someOtherBagId = UUID.randomUUID()
-    inside(getBagSequence(someOtherBagId)) {
-      case Failure(BagIdNotFoundException(id)) => id shouldBe someOtherBagId
-    }
+    getBagSequence(someOtherBagId) should matchPattern { case Failure(BagIdNotFoundException(`someOtherBagId`)) => }
   }
 }
