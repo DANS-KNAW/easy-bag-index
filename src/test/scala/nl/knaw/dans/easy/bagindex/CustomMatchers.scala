@@ -17,19 +17,25 @@ package nl.knaw.dans.easy.bagindex
 
 import org.scalatest.matchers.{ MatchResult, Matcher }
 
-import scala.xml.{ Node, Utility }
+import scala.xml.{ Node, PrettyPrinter, XML }
 
 trait CustomMatchers {
 
   // copied from easy-split-multi-deposit
-  class EqualTrimmedMatcher(right: Seq[Node]) extends Matcher[Seq[Node]] {
-    override def apply(left: Seq[Node]): MatchResult = {
+  class EqualTrimmedMatcher(right: Iterable[Node]) extends Matcher[Iterable[Node]] {
+    private val pp = new PrettyPrinter(160, 2)
+
+    private def prepForTest(n: Node) = XML.loadString(pp.format(n))
+
+    private def pretty(ns: Iterable[Node]) = ns.map(n => XML.loadString(pp.format(n))).mkString("\n")
+
+    override def apply(left: Iterable[Node]): MatchResult = {
       MatchResult(
-        left.zip(right).forall { case (l, r) => Utility.trim(l).toString() == Utility.trim(r).toString() },
-        s"$left did not equal $right",
-        s"$left did equal $right"
+        left.zip(right).forall { case (l, r) => prepForTest(l) == prepForTest(r) },
+        s"${ pretty(left) } was not equal to ${ pretty(right) }",
+        s"${ pretty(left) } was equal to ${ pretty(right) }"
       )
     }
   }
-  def equalTrimmed(right: Seq[Node]) = new EqualTrimmedMatcher(right)
+  def equalTrimmed(right: Iterable[Node]) = new EqualTrimmedMatcher(right)
 }
