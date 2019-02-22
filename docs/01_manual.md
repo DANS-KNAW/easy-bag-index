@@ -1,3 +1,8 @@
+---
+title: Manual
+layout: home
+---
+
 easy-bag-index
 ==============
 [![Build Status](https://travis-ci.org/DANS-KNAW/easy-bag-index.png?branch=master)](https://travis-ci.org/DANS-KNAW/easy-bag-index)
@@ -56,7 +61,7 @@ easy-bag-index index 40594b6d-8378-4260-b96b-13b57beadf7c
 curl 'http://localhost:20120/40594b6d-8378-4260-b96b-13b57beadf7c' -X PUT
 curl 'http://localhost:20120/40594b6d-8378-4260-b96b-13b57beadf7c'
 curl 'http://localhost:20120/bag-sequence='40594b6d-8378-4260-b96b-13b57beadf7c'
-curl localhost:20120/search?doi="10.5072/dans-x6f-kf66"
+curl 'http://localhost:20120/search?doi="10.5072/dans-x6f-kf66"'
 ```
 
 ```json
