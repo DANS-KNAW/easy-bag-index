@@ -39,29 +39,11 @@ ARGUMENTS
     Subcommand: run-service - Starts EASY bag index as a daemon that services HTTP requests
          -h, --help   Show help message
 
-
-HTTP service
-------------
-
-When started with the sub-command `run-service` a REST API becomes available with HTTP method `GET` and `PUT`.
-
-Method   | Path           | Action
----------|----------------|------------------------------------
-`GET`    | `/`            | Return a simple message to indicate that the service is up: "EASY Auth Info Service running..."
-`GET`    | `/bag-sequence?contains=:uuid` | Return a list of bagIds that have the same baseId, ordered by the 'created' timestamp
-`GET`    | `/search?doi=:DOI`  | Search for bags related by a DOI.
-`GET`    | `/bags/:uuid`  | Search for relation data corresponding to a UUID.
-`PUT`    | `/bags/:uuid`  | Add relation data to the index corresponding to a UUID.
-
 EXAMPLES
 --------
 
 ```jshelllanguage
 easy-bag-index index 40594b6d-8378-4260-b96b-13b57beadf7c
-curl 'http://localhost:20120/40594b6d-8378-4260-b96b-13b57beadf7c' -X PUT
-curl 'http://localhost:20120/40594b6d-8378-4260-b96b-13b57beadf7c'
-curl 'http://localhost:20120/bag-sequence='40594b6d-8378-4260-b96b-13b57beadf7c'
-curl 'http://localhost:20120/search?doi="10.5072/dans-x6f-kf66"'
 ```
 
 ```json
@@ -80,12 +62,6 @@ curl 'http://localhost:20120/search?doi="10.5072/dans-x6f-kf66"'
 
 INSTALLATION AND CONFIGURATION
 ------------------------------
-
-
-### Depending on services
-
-* [easy-bag-store](https://github.com/DANS-KNAW/easy-bag-store/)
-
 
 ### Steps
 
