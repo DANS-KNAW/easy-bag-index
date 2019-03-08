@@ -40,5 +40,5 @@ trait ServerTestSupportFixture {
     }
   }
 
-  def successful: (Int, String) = (200, "EASY Bag Index running.")
+  def successful(version: String): (Int, String) = (200, s"EASY Bag Index running v$version\n.") //TODO how does this newline end up in the response?
 }
