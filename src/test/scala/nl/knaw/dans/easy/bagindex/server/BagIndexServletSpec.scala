@@ -213,7 +213,7 @@ class BagIndexServletSpec extends TestSupportFixture
 
   it should "return an empty response when the bagId is unknown" in {
     get(s"/bags/${ UUID.randomUUID() }") {
-      status shouldBe 200
+      status shouldBe 404
       body shouldBe
         s"""{
            |  "result":[]

@@ -80,7 +80,7 @@ trait BagIndexServletComponent {
     }
 
     get("/search") {
-      def searchWithDoi(doi: Doi) = {
+      def searchWithDoi(doi: Doi): Try[String] = {
         databaseAccess.doTransaction(implicit c => {
           database.getBagsWithDoi(doi)
             .map(createResponse[Seq[BagInfo]](relations => <result>{relations.map(toXml)}</result>)(relations => "result" -> relations.map(toJson)))
@@ -136,9 +136,8 @@ trait BagIndexServletComponent {
         .flatMap(uuid => databaseAccess.doTransaction(implicit c => database.getBagInfo(uuid)))
         .map(createResponse[BagInfo](bagInfo => <result>{toXml(bagInfo)}</result>)(bagInfo => "result" -> toJson(bagInfo)))
         .recoverWith {
-          case BagIdNotFoundException(_) => Success(createResponse[Unit](_ => <result/>)(_ => "result" -> JArray(List.empty))(()))
+          case BagIdNotFoundException(_) => Success(NotFound(createResponse[Unit](_ => <result/>)(_ => "result" -> JArray(List.empty))(())))
         }
-        .map(Ok(_))
         .doIfFailure { case e => logger.error(e.getMessage, e) }
         .getOrRecover(defaultErrorHandling)
     }
