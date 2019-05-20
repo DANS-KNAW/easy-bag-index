@@ -235,7 +235,7 @@ class BagIndexServletSpec extends TestSupportFixture
     val uuid = UUID.randomUUID()
     get(s"/bags/${ uuid }") {
       status shouldBe 404
-      body shouldBe s""""bag with id $uuid could not be found""""
+      body shouldBe s"bag with id $uuid could not be found"
     }
   }
 

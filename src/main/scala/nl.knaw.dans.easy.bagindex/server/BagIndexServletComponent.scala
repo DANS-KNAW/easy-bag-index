@@ -135,8 +135,9 @@ trait BagIndexServletComponent {
         .doIfSuccess(bagId => logger.info(s"get relation data corresponding to bag $bagId"))
         .flatMap(uuid => databaseAccess.doTransaction(implicit c => database.getBagInfo(uuid)))
         .map(createResponse[BagInfo](bagInfo => <result>{toXml(bagInfo)}</result>)(bagInfo => "result" -> toJson(bagInfo)))
+        .map(Ok(_))
         .recoverWith {
-          case BagIdNotFoundException(_) => Success(NotFound(createResponse[Unit](_ => <result/>)(_ => s"bag with id $uuidStr could not be found")(())))
+          case BagIdNotFoundException(_) => Success(NotFound(s"bag with id $uuidStr could not be found"))
         }
         .doIfFailure { case e => logger.error(e.getMessage, e) }
         .getOrRecover(defaultErrorHandling)
