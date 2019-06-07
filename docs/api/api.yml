@@ -56,24 +56,21 @@ paths:
 
   /bag-sequence?contains={UUID}:
     get:
-      summary: Returns the Bag Index metadata for an item from a bag in any bag store.
+      summary: Returns a newline separated list of UUIDs that are part of a bag-sequence.
       description: |
-        An item is either a directory or file in a bag. The item fetched is specified by the item-id:
-
+        The fetched list is specified by the item-id of any bag in the sequence. If the UUID is not part of any sequence an empty list is returned.
       parameters:
         - $ref: '#/components/parameters/UUID'
 
       responses:
         200:
-          description: Bag index object
+          description: Newline separated list of UUIDs
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/bagIndexOk"
         400:
                   description: The UUID was syntactically incorrect.
-        404:
-          $ref: '#/components/responses/FileNotFound'
         500:
           $ref: '#/components/responses/Unavailable'
 
