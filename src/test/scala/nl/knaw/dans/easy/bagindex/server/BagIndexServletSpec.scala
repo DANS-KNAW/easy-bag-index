@@ -282,16 +282,16 @@ class BagIndexServletSpec extends TestSupportFixture
     }
   }
 
-  it should "fail when the bag is not found in the bagstore" in {
+  it should "fail when the bag is not found in the bagstore, returning not found" in {
     val uuid = UUID.randomUUID()
 
     put(s"/bags/$uuid") {
-      status shouldBe 400
+      status shouldBe 404
       body shouldBe s"The bag with id '$uuid' could not be found"
     }
   }
 
-  it should "fail when the parameter 'bagId' is not present" in {
+  it should "fail when the parameter 'bagId' is not present" in { //TODO isn't this a 400??
     put("/bags") {
       status shouldBe 404
     }
