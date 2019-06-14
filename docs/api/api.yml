@@ -100,7 +100,7 @@ paths:
         400:
           description: The UUID was syntactically incorrect.
         404:
-          $ref: '#/components/responses/FileNotFound'
+          description: Bag-index metadata could not be found for the specified item-id.
         500:
           $ref: '#/components/responses/Unavailable'
     put:
@@ -119,8 +119,11 @@ paths:
 
             * The bag has already been added to the index.
             * The UUID was syntactically incorrect.
+            * The bag could not read, and may have been corrupt.
+            * The DOI could not be found in the bag's metadata.
+            * Bag-info.txt contains an invalid Is-Version-Of identifier tag.
         404:
-          $ref: '#/components/responses/FileNotFound'
+          $ref: The a bag with the specified item-id could not be found.
         500:
           $ref: '#/components/responses/Unavailable'
 
