@@ -291,7 +291,7 @@ class BagIndexServletSpec extends TestSupportFixture
     }
   }
 
-  it should "fail when the parameter 'bagId' is not present" in { //TODO isn't this a 400??
+  it should "fail when the parameter 'bagId' is not present" in {
     put("/bags") {
       status shouldBe 404
     }
