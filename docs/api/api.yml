@@ -59,7 +59,7 @@ paths:
     get:
       summary: Returns a newline separated list of UUIDs that are part of a bag-sequence.
       description: |
-        The fetched list is specified by the item-id of any bag in the sequence. The items listed in order of their creation date. If the UUID is not part of any sequence an empty list is returned.
+        The fetched list is specified by the item-id of any bag in the sequence. The items are listed in order of their creation date. If the UUID is not part of any sequence an empty list is returned.
       parameters:
         - $ref: '#/components/parameters/UUID'
 
@@ -123,7 +123,7 @@ paths:
             * The DOI could not be found in the bag's metadata.
             * Bag-info.txt contains an invalid Is-Version-Of identifier tag.
         404:
-          $ref: The a bag with the specified item-id could not be found.
+          A bag with the specified item-id could not be found.
         500:
           $ref: '#/components/responses/Unavailable'
 
@@ -160,7 +160,7 @@ components:
             bag-id: 40594b6d-8378-4260-b96b-13b57beadf7c,
             base-id: 40594b6d-8378-4260-b96b-13b57beadf7c,
             created: 2015-05-19T00:00:00.000+02:00,
-            doi: 10.17026/dans-x6f-kf66
+            doi: 10.17026/test-x6f-kf66
       properties:
         result:
           type: object
@@ -189,7 +189,7 @@ components:
               bag-id: 40594b6d-8378-4260-b96b-13b57beadf7c,
               base-id: 40594b6d-8378-4260-b96b-13b57beadf7c,
               created: 2015-05-19T00:00:00.000+02:00,
-              doi: 10.17026/dans-x6f-kf66
+              doi: 10.17026/test-x6f-kf66
       properties:
         result:
           type: array
