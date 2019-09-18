@@ -1,4 +1,4 @@
-CREATE TABLE bag_info (
+CREATE TABLE IF NOT EXISTS bag_info (
     bagId CHAR(36) NOT NULL PRIMARY KEY,
     base CHAR(36) NOT NULL,
     created VARCHAR(29) NOT NULL,
