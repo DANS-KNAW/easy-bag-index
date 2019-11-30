@@ -55,24 +55,6 @@ easy-bag-index index 40594b6d-8378-4260-b96b-13b57beadf7c
 
 ```
 
-INSTALLATION AND CONFIGURATION
-------------------------------
-
-### Steps
-
-1. Unzip the tarball to a directory of your choice, typically `/usr/local/`
-2. A new directory called easy-bag-index-<version> will be created
-3. Add the command script to your `PATH` environment variable by creating a symbolic link to it from a directory that is
-   on the path, e.g.
-
-        ln -s /usr/local/easy-bag-index-<version>/bin/easy-bag-index /usr/bin
-
-
-General configuration settings can be set in `cfg/application.properties` and logging can be configured
-in `cfg/logback.xml`. The available settings are explained in comments in aforementioned files.
-
-
-
 BUILDING FROM SOURCE
 --------------------
 
@@ -80,9 +62,14 @@ Prerequisites:
 
 * Java 8 or higher
 * Maven 3.3.3 or higher
+* RPM
 
 Steps:
 
         git clone https://github.com/DANS-KNAW/easy-bag-index.git
         cd easy-bag-index
         mvn install
+
+If the `rpm` executable is found at `/usr/local/bin/rpm`, the build profile that includes the RPM
+packaging will be activated. If `rpm` is available, but at a different path, then activate it by using
+Maven's `-P` switch: `mvn -Pprm install`.
