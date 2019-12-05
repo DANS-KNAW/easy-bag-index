@@ -59,8 +59,7 @@ easy-bag-index index 40594b6d-8378-4260-b96b-13b57beadf7c
 INSTALLATION AND CONFIGURATION
 ------------------------------
 Currently this project is build only as an RPM package for RHEL7/CentOS7 and later. The RPM will install the binaries to
-`/opt/dans.knaw.nl/easy-bag-index`, the configuration files to `/etc/opt/dans.knaw.nl/easy-bag-index`,
-and will install the service script for `systemd`.
+`/opt/dans.knaw.nl/easy-bag-index` and the configuration files to `/etc/opt/dans.knaw.nl/easy-bag-index`.
 
 To install the module on systems that do not support RPM, you can copy and unarchive the tarball to the target host.
 You will have to take care of placing the files in the correct locations for your system yourself. For instructions
