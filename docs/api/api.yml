@@ -55,7 +55,7 @@ paths:
         500:
           $ref: '#/components/responses/Unavailable'
 
-  /bag-sequence:
+  /bag-sequence?contains={UUID}:
     get:
       summary: Returns a newline separated list of UUIDs that make up the bag-sequence for the specified bag.
       description: |
