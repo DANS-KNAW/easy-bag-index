@@ -61,7 +61,11 @@ paths:
       description: |
         The fetched list is specified by the item-id of any bag in the sequence. The items are listed in order of their creation date. If the UUID is not found an empty list is returned.
       parameters:
-        - $ref: '#/components/parameters/UUID'
+        - in: query
+          name: contains
+          schema:
+            type: string
+          description: the UUID to search for
 
       responses:
         200:
@@ -115,7 +119,7 @@ paths:
           description: The object has been created.
         400:
           description: |
-            the request was rejected by the bag-index. The reason will be included in the response entity. Some possible causes are:
+            The request was rejected by the bag-index. The reason will be included in the response entity. Some possible causes are:
 
             * The bag has already been added to the index.
             * The UUID was syntactically incorrect.
@@ -123,7 +127,7 @@ paths:
             * The DOI could not be found in the bag's metadata.
             * Bag-info.txt contains an invalid Is-Version-Of identifier tag.
         404:
-          A bag with the specified item-id could not be found.
+          description: A bag with the specified item-id could not be found.
         500:
           $ref: '#/components/responses/Unavailable'
 
