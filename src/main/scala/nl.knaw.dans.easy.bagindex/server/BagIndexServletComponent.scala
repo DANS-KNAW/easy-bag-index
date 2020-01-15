@@ -15,14 +15,13 @@
  */
 package nl.knaw.dans.easy.bagindex.server
 
-import java.util.UUID
-
 import nl.knaw.dans.easy.bagindex._
 import nl.knaw.dans.easy.bagindex.access.DatabaseAccessComponent
 import nl.knaw.dans.easy.bagindex.components.{ DatabaseComponent, IndexBagComponent }
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import nl.knaw.dans.lib.logging.servlet._
+import nl.knaw.dans.lib.string._
 import org.joda.time.DateTime
 import org.json4s.JValue
 import org.json4s.JsonDSL._
@@ -107,7 +106,7 @@ trait BagIndexServletComponent {
       contentType = "text/plain"
       params.get("contains")
         .map(uuidStr => {
-          Try { UUID.fromString(uuidStr) }
+          uuidStr.toUUID.toTry
             .recoverWith {
               case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
             }
@@ -127,7 +126,7 @@ trait BagIndexServletComponent {
     // the data is returned as JSON by default or XML when specified (content-type application/xml or text/xml)
     get("/bags/:bagId") {
       val uuidStr = params("bagId")
-      Try { UUID.fromString(uuidStr) }
+      uuidStr.toUUID.toTry
         .recoverWith {
           case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
         }
@@ -147,7 +146,7 @@ trait BagIndexServletComponent {
     // based on this, add a record to the index/database
     put("/bags/:bagId") {
       val uuidStr = params("bagId")
-      Try { UUID.fromString(uuidStr) }
+      uuidStr.toUUID.toTry
         .recoverWith {
           case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
         }

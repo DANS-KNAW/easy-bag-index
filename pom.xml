@@ -81,6 +81,13 @@
             <version>1.6.0</version>
         </dependency>
 
+        <!-- dans lib -->
+        <dependency>
+            <groupId>nl.knaw.dans.lib</groupId>
+            <artifactId>dans-scala-lib_2.12</artifactId>
+            <version>1.6.1</version>
+        </dependency>
+
         <!-- Apache Commons -->
         <dependency>
             <groupId>commons-io</groupId>

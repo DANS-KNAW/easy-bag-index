@@ -21,6 +21,7 @@ import java.util.UUID
 import nl.knaw.dans.easy.bagindex.JavaOptionals._
 import nl.knaw.dans.easy.bagindex.{ BagId, BagNotFoundException, _ }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import nl.knaw.dans.lib.string._
 import resource._
 
 import scala.annotation.tailrec
@@ -143,8 +144,11 @@ trait BagStoreAccessComponent extends DebugEnhancedLogging {
             .map(baseDir.relativize)
             .withFilter(_.getNameCount == depth)
             .map(path => {
-              val bagId = UUID.fromString(formatUuidStrCanonically(path.toString.filterNot(_ == '/')))
-              (bagId, findBag(baseDir.resolve(path)).get)
+              val bagId = formatUuidStrCanonically(path.toString.filterNot(_ == '/')).toUUID.toTry
+              bagId match {
+                case Success(uuid) => (bagId.get, findBag(baseDir.resolve(path)).get)
+                case Failure(error) => throw new Exception(error)
+              }
             })
         }
 
