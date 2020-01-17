@@ -107,9 +107,6 @@ trait BagIndexServletComponent {
       params.get("contains")
         .map(uuidStr => {
           uuidStr.toUUID.toTry
-            .recoverWith {
-              case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
-            }
             .flatMap(uuid => databaseAccess.doTransaction(implicit c => index.getBagSequence(uuid)))
             .recoverWith {
               case BagIdNotFoundException(_) => Success(List.empty)
@@ -127,9 +124,6 @@ trait BagIndexServletComponent {
     get("/bags/:bagId") {
       val uuidStr = params("bagId")
       uuidStr.toUUID.toTry
-        .recoverWith {
-          case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
-        }
         .doIfSuccess(bagId => logger.info(s"get relation data corresponding to bag $bagId"))
         .flatMap(uuid => databaseAccess.doTransaction(implicit c => database.getBagInfo(uuid)))
         .map(createResponse[BagInfo](bagInfo => <result>{toXml(bagInfo)}</result>)(bagInfo => "result" -> toJson(bagInfo)))
@@ -147,9 +141,6 @@ trait BagIndexServletComponent {
     put("/bags/:bagId") {
       val uuidStr = params("bagId")
       uuidStr.toUUID.toTry
-        .recoverWith {
-          case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
-        }
         .flatMap(uuid => databaseAccess.doTransaction(implicit c => index.addFromBagStore(uuid)))
         .map(_ => Created())
         .doIfFailure { case e => logger.error(e.getMessage, e) }
@@ -161,6 +152,7 @@ trait BagIndexServletComponent {
     private def defaultErrorHandling(t: Throwable): ActionResult = {
       t match {
         case e: IllegalArgumentException => BadRequest(e.getMessage)
+        case e: UUIDError => BadRequest(e.getMessage)
         case e: BagReaderException => BadRequest(e.getMessage)
         case e: BagIdNotFoundException => NotFound(e.getMessage)
         case e: NotABagDirException => NotFound(e.getMessage)

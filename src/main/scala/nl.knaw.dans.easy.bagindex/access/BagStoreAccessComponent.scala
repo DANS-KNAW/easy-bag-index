@@ -146,7 +146,7 @@ trait BagStoreAccessComponent extends DebugEnhancedLogging {
             .map(path => {
               val bagId = formatUuidStrCanonically(path.toString.filterNot(_ == '/')).toUUID.toTry
               bagId match {
-                case Success(uuid) => (bagId.get, findBag(baseDir.resolve(path)).get)
+                case Success(uuid) => (uuid, findBag(baseDir.resolve(path)).get)
                 case Failure(error) => throw new Exception(error)
               }
             })
