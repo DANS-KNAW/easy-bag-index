@@ -168,14 +168,14 @@ class BagIndexServletSpec extends TestSupportFixture
   it should "fail when the parameter 'contains' is not a well-formatted UUID" in {
     get("/bag-sequence", "contains" -> "abc-def-ghi-jkl-mno") {
       status shouldBe 400
-      body shouldBe "invalid UUID string: abc-def-ghi-jkl-mno"
+      body shouldBe "String 'abc-def-ghi-jkl-mno' is not a UUID"
     }
   }
 
   it should "fail when the parameter 'contains' is not a UUID" in {
     get("/bag-sequence", "contains" -> "foobar") {
       status shouldBe 400
-      body shouldBe "invalid UUID string: foobar"
+      body shouldBe "String 'foobar' is not a UUID"
     }
   }
 
@@ -248,14 +248,14 @@ class BagIndexServletSpec extends TestSupportFixture
   it should "fail when the parameter 'bagId' is not a well-formatted UUID" in {
     get("/bags/abc-def-ghi-jkl-mno") {
       status shouldBe 400
-      body shouldBe "invalid UUID string: abc-def-ghi-jkl-mno"
+      body shouldBe "String 'abc-def-ghi-jkl-mno' is not a UUID"
     }
   }
 
   it should "fail when the parameter 'bagId' is not a UUID" in {
     get("/bags/foobar") {
       status shouldBe 400
-      body shouldBe "invalid UUID string: foobar"
+      body shouldBe "String 'foobar' is not a UUID"
     }
   }
 
@@ -300,14 +300,14 @@ class BagIndexServletSpec extends TestSupportFixture
   it should "fail when the parameter 'bagId' is not a well-formatted UUID" in {
     put("/bags/abc-def-ghi-jkl-mno") {
       status shouldBe 400
-      body shouldBe "invalid UUID string: abc-def-ghi-jkl-mno"
+      body shouldBe "String 'abc-def-ghi-jkl-mno' is not a UUID"
     }
   }
 
   it should "fail when the parameter 'bagId' is not a UUID" in {
     put("/bags/foobar") {
       status shouldBe 400
-      body shouldBe "invalid UUID string: foobar"
+      body shouldBe "String 'foobar' is not a UUID"
     }
   }
 }

@@ -7,7 +7,7 @@ Index a bag store
 SYNOPSIS
 --------
 
-    easy-bag-index index [--force | -f] <item-id> # Retrieves the information from the cache or directly from the bag-store
+    easy-bag-index index [--force | -f]  [--bagId | -b <item-id>] # Retrieves the information from the cache or directly from the bag-store
     easy-bag-index run-service # Runs the program as a service
 
 DESCRIPTION
@@ -22,12 +22,10 @@ ARGUMENTS
     -h, --help      Show help message
     -v, --version   Show version of this program
 
-    Subcommand: index - Starts EASY bag index as a daemon that services HTTP requests
+    Subcommand: index - Adds one bag or the whole bag-store to the index
+        -b, --bagId  <arg>   the bag identifier to be added
         -f, --force  Force the indexing without asking for confirmation
         -h, --help   Show help message
-
-    trailing arguments:
-           item-id (required)
 
     ---
 

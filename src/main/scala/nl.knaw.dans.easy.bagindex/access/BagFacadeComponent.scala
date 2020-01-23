@@ -26,6 +26,7 @@ import gov.loc.repository.bagit.exceptions._
 import gov.loc.repository.bagit.reader.BagReader
 import nl.knaw.dans.easy.bagindex._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import nl.knaw.dans.lib.string._
 import org.joda.time.DateTime
 
 import scala.collection.JavaConverters._
@@ -61,7 +62,7 @@ trait BagFacadeComponent extends DebugEnhancedLogging {
         val uuidPart = uri.getSchemeSpecificPart
         val parts = uuidPart.split(':')
         if (parts.length != 2) Failure(InvalidIsVersionOfException(bagDir, uri.toASCIIString))
-        else Try { UUID.fromString(parts(1)) }
+        else parts(1).toUUID.toTry
       }
       else Failure(InvalidIsVersionOfException(bagDir, uri.toASCIIString))
     }

@@ -15,14 +15,13 @@
  */
 package nl.knaw.dans.easy.bagindex.server
 
-import java.util.UUID
-
 import nl.knaw.dans.easy.bagindex._
 import nl.knaw.dans.easy.bagindex.access.DatabaseAccessComponent
 import nl.knaw.dans.easy.bagindex.components.{ DatabaseComponent, IndexBagComponent }
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import nl.knaw.dans.lib.logging.servlet._
+import nl.knaw.dans.lib.string._
 import org.joda.time.DateTime
 import org.json4s.JValue
 import org.json4s.JsonDSL._
@@ -107,10 +106,7 @@ trait BagIndexServletComponent {
       contentType = "text/plain"
       params.get("contains")
         .map(uuidStr => {
-          Try { UUID.fromString(uuidStr) }
-            .recoverWith {
-              case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
-            }
+          uuidStr.toUUID.toTry
             .flatMap(uuid => databaseAccess.doTransaction(implicit c => index.getBagSequence(uuid)))
             .recoverWith {
               case BagIdNotFoundException(_) => Success(List.empty)
@@ -127,10 +123,7 @@ trait BagIndexServletComponent {
     // the data is returned as JSON by default or XML when specified (content-type application/xml or text/xml)
     get("/bags/:bagId") {
       val uuidStr = params("bagId")
-      Try { UUID.fromString(uuidStr) }
-        .recoverWith {
-          case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
-        }
+      uuidStr.toUUID.toTry
         .doIfSuccess(bagId => logger.info(s"get relation data corresponding to bag $bagId"))
         .flatMap(uuid => databaseAccess.doTransaction(implicit c => database.getBagInfo(uuid)))
         .map(createResponse[BagInfo](bagInfo => <result>{toXml(bagInfo)}</result>)(bagInfo => "result" -> toJson(bagInfo)))
@@ -147,10 +140,7 @@ trait BagIndexServletComponent {
     // based on this, add a record to the index/database
     put("/bags/:bagId") {
       val uuidStr = params("bagId")
-      Try { UUID.fromString(uuidStr) }
-        .recoverWith {
-          case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
-        }
+      uuidStr.toUUID.toTry
         .flatMap(uuid => databaseAccess.doTransaction(implicit c => index.addFromBagStore(uuid)))
         .map(_ => Created())
         .doIfFailure { case e => logger.error(e.getMessage, e) }
@@ -162,6 +152,7 @@ trait BagIndexServletComponent {
     private def defaultErrorHandling(t: Throwable): ActionResult = {
       t match {
         case e: IllegalArgumentException => BadRequest(e.getMessage)
+        case e: UUIDError => BadRequest(e.getMessage)
         case e: BagReaderException => BadRequest(e.getMessage)
         case e: BagIdNotFoundException => NotFound(e.getMessage)
         case e: NotABagDirException => NotFound(e.getMessage)

@@ -18,8 +18,9 @@ package nl.knaw.dans.easy.bagindex.command
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagindex.{ BagId, ConfigurationComponent }
+import nl.knaw.dans.lib.string._
 import org.joda.time.DateTime
-import org.rogach.scallop.{ ScallopConf, ScallopOption, Subcommand, singleArgConverter }
+import org.rogach.scallop.{ ScallopConf, ScallopOption, Subcommand, singleArgConverter, stringConverter }
 
 import scala.annotation.tailrec
 import scala.io.StdIn
@@ -44,13 +45,13 @@ trait CommandLineOptionsComponent {
          |Usage:
          |
          |$printedName \\
-         |${ _________ }| index [--force | -f] [bagId]
+         |${ _________ }| index [--force | -f] [--bagId | -b <bagId>]
          |${ _________ }| run-service
          |
          |Options:
          |""".stripMargin)
 
-    private implicit val uuidConverter = singleArgConverter[UUID](UUID.fromString)
+    private implicit val uuidConverter = stringConverter.flatMap(_.toUUID.fold(e => Left(e.getMessage), uuid => Right(Option(uuid))))
     private implicit val dateTimeConverter = singleArgConverter[DateTime](DateTime.parse)
 
     val index = new Subcommand("index") {
@@ -59,7 +60,7 @@ trait CommandLineOptionsComponent {
       val force: ScallopOption[Boolean] = opt(name = "force", short = 'f', default = Some(false),
         descr = "force the indexing without asking for confirmation")
 
-      val bagId: ScallopOption[BagId] = trailArg[UUID](name = "bagId",
+      val bagId: ScallopOption[BagId] = opt(name = "bagId", short = 'b',
         descr = "the bag identifier to be added",
         required = false)
       footer(SUBCOMMAND_SEPARATOR)
