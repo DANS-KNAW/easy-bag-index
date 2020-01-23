@@ -45,7 +45,7 @@ trait CommandLineOptionsComponent {
          |Usage:
          |
          |$printedName \\
-         |${ _________ }| index [--force | -f] [-b bagId]
+         |${ _________ }| index [--force | -f] [--bagId | -b <bagId>]
          |${ _________ }| run-service
          |
          |Options:
