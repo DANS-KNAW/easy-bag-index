@@ -86,7 +86,7 @@ trait BagIndexServletComponent {
       }
 
       Option(params)
-        .filter(_.nonEmpty)
+        .filter(_.size > 0)
         .map(params => {
           lazy val doi = params.get("doi").map(searchWithDoi)
           doi

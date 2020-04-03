@@ -16,6 +16,7 @@
 package nl.knaw.dans.easy.bagindex
 
 import java.net.{ HttpURLConnection, URL }
+import java.nio.charset.StandardCharsets
 
 import org.apache.commons.io.IOUtils
 import resource.managed
@@ -33,8 +34,8 @@ trait ServerTestSupportFixture {
         }
           .map(_.getResponseCode)
           .acquireAndGet {
-            case code if code >= 200 && code < 300 => (code, IOUtils.toString(conn.getInputStream))
-            case code => (code, IOUtils.toString(conn.getErrorStream))
+            case code if code >= 200 && code < 300 => (code, IOUtils.toString(conn.getInputStream, StandardCharsets.UTF_8))
+            case code => (code, IOUtils.toString(conn.getErrorStream, StandardCharsets.UTF_8))
           }
       case _ => throw new Exception
     }

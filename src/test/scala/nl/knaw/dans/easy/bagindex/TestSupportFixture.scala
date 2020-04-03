@@ -18,9 +18,11 @@ package nl.knaw.dans.easy.bagindex
 import java.nio.file.{ Files, Path, Paths }
 
 import org.apache.commons.io.FileUtils
-import org.scalatest._
+import org.scalatest.Inside
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-trait TestSupportFixture extends FlatSpec with Matchers with Inside {
+trait TestSupportFixture extends AnyFlatSpec with Matchers with Inside {
 
   lazy val testDir: Path = {
     val path = Paths.get(s"target/test/${ getClass.getSimpleName }").toAbsolutePath
