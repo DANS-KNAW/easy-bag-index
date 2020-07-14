@@ -15,7 +15,7 @@
  */
 package nl.knaw.dans.easy.bagindex.access
 
-import nl.knaw.dans.easy.bagindex.{ BagStoreFixture, Bagit5Fixture, NoDoiFoundException, TestSupportFixture }
+import nl.knaw.dans.easy.bagindex.{ BagStoreFixture, Bagit5Fixture, NoIdentifierFoundException, TestSupportFixture }
 
 import scala.util.{ Failure, Success }
 import scala.xml.transform.{ RewriteRule, RuleTransformer }
@@ -44,6 +44,6 @@ class BagFacadeSpec extends TestSupportFixture with BagStoreFixture with Bagit5F
       .transform(XML.loadFile(datasetXML.toFile))
       .foreach(XML.save(datasetXML.toString, _))
 
-    bagFacade.getDoi(datasetXML) should matchPattern { case Failure(NoDoiFoundException(`datasetXML`)) => }
+    bagFacade.getDoi(datasetXML) should matchPattern { case Failure(NoIdentifierFoundException("doi", `datasetXML`)) => }
   }
 }

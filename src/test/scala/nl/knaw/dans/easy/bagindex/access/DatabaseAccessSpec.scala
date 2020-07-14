@@ -51,7 +51,7 @@ class DatabaseAccessSpec extends TestSupportFixture with BagIndexDatabaseFixture
     }
 
     inside(databaseAccess.doTransaction(implicit c => {
-      val add = database.addBagInfo(bagId, bagId, DateTime.now, testDoi)(c)
+      val add = database.addBagInfo(bagId, bagId, DateTime.now, testDoi, testUrn)(c)
       add shouldBe a[Success[_]]
 
       // check that the bag was added properly
@@ -83,7 +83,7 @@ class DatabaseAccessSpec extends TestSupportFixture with BagIndexDatabaseFixture
     }
 
     databaseAccess.doTransaction(implicit c => {
-      val add = database.addBagInfo(bagId, bagId, DateTime.now, testDoi)(c)
+      val add = database.addBagInfo(bagId, bagId, DateTime.now, testDoi, testUrn)(c)
       add shouldBe a[Success[_]]
 
       // check that the bag was added properly
