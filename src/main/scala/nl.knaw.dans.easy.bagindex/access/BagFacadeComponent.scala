@@ -70,6 +70,8 @@ trait BagFacadeComponent extends DebugEnhancedLogging {
     def getBagInfo(bagDir: Path): Try[Map[String, String]]
 
     def getDoi(bagDir: Path): Try[Doi]
+
+    def getUrn(bagDir: Path): Try[Urn]
   }
 }
 
@@ -96,15 +98,29 @@ trait Bagit5FacadeComponent extends BagFacadeComponent with DebugEnhancedLogging
       case NonFatal(cause) => Failure(NotABagDirException(bagDir, cause))
     }
 
-    override def getDoi(datasetXml: Path): Try[Doi] = Try {
-      trace(datasetXml)
-      val doi = (XML.loadFile(datasetXml.toFile) \ "dcmiMetadata" \ "identifier")
-        .find(hasXsiType(NAMESPACE_IDENTIFIER_TYPE, "DOI"))
-        .map(node => Success(node.text))
-        .getOrElse(Failure(NoDoiFoundException(datasetXml)))
+    override def getDoi(datasetXml: Path): Try[Doi] = {
+      getIdentifier("DOI", datasetXml, false)
+    }
 
-      debug(s"found doi for $datasetXml: $doi")
-      doi
+    override def getUrn(datasetXml: Path): Try[Urn] = {
+      getIdentifier("URN", datasetXml, true)
+    }
+
+    private def getIdentifier(identifierType: String, datasetXml: Path, obligatory: Boolean): Try[Identifier] = Try {
+      trace(datasetXml)
+      val identifier = (XML.loadFile(datasetXml.toFile) \ "dcmiMetadata" \ "identifier")
+        .find(hasXsiType(NAMESPACE_IDENTIFIER_TYPE, identifierType))
+        .map(node =>
+          Success(node.text)
+        )
+        .getOrElse {
+          if (obligatory)
+            Failure(NoIdentifierFoundException(identifierType, datasetXml))
+          else
+            Success("")
+        }
+      debug(s"$identifierType for $datasetXml: $identifier")
+      identifier
     }.flatten
 
     private val NAMESPACE_SCHEMA_INSTANCE = new URI("http://www.w3.org/2001/XMLSchema-instance")

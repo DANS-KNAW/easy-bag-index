@@ -64,7 +64,8 @@ trait DatabaseComponent extends DebugEnhancedLogging {
         bagId = UUID.fromString(result.getString("bagId").trim),
         baseId = UUID.fromString(result.getString("base").trim),
         created = DateTime.parse(result.getString("created").trim, dateTimeFormatter),
-        doi = result.getString("doi").trim)
+        doi = result.getString("doi").trim,
+        urn = result.getString("urn").trim)
     }
 
     private def getBagId(result: ResultSet): BagId = {
@@ -112,20 +113,21 @@ trait DatabaseComponent extends DebugEnhancedLogging {
      */
     def getBagInfo(bagId: BagId)(implicit connection: Connection): Try[BagInfo] = {
       trace(bagId)
-      Query("SELECT bagId, base, created, doi FROM bag_info WHERE bagId=?;")(_.setString(1, bagId.toString))
+      Query("SELECT bagId, base, created, doi, urn FROM bag_info WHERE bagId=?;")(_.setString(1, bagId.toString))
         .select(getBagInfo)(() => throw BagIdNotFoundException(bagId))
     }
 
     /**
      * Returns a sequence of all bag relations that have a given `DOI`.
      *
-     * @param doi        the DOI to be searched
-     * @param connection the connection to the database on which the query needs to be run
+     * @param identifier      the identifier to be searched
+     * @param identifierType  the identifier type (doi/urn)
+     * @param connection      the connection to the database on which the query needs to be run
      * @return a list of bag relations with a given `DOI`
      */
-    def getBagsWithDoi(doi: Doi)(implicit connection: Connection): Try[Seq[BagInfo]] = {
-      trace(doi)
-      Query("SELECT bagId, base, created, doi FROM bag_info WHERE doi=?;")(_.setString(1, doi)).selectMany(getBagInfo)
+    def getBagsWithIdentifier(identifier: Identifier, identifierType: String)(implicit connection: Connection): Try[Seq[BagInfo]] = {
+      trace(identifier, identifierType)
+      Query(s"SELECT bagId, base, created, doi, urn FROM bag_info WHERE $identifierType=?;")(_.setString(1, identifier)).selectMany(getBagInfo)
     }
 
     /**
@@ -136,7 +138,7 @@ trait DatabaseComponent extends DebugEnhancedLogging {
      * @return a list of all bag relations
      */
     def getAllBagInfos(implicit connection: Connection): Try[Seq[BagInfo]] = {
-      Query("SELECT bagId, base, created, doi FROM bag_info;")(_ => ()).selectMany(getBagInfo)
+      Query("SELECT bagId, base, created, doi, urn FROM bag_info;")(_ => ()).selectMany(getBagInfo)
     }
 
     /**
@@ -149,15 +151,16 @@ trait DatabaseComponent extends DebugEnhancedLogging {
      * @param connection the connection to the database on which this action needs to be applied
      * @return `Success` if the bag relation was added successfully; `Failure` otherwise
      */
-    def addBagInfo(bagId: BagId, baseId: BaseId, created: DateTime, doi: Doi)(implicit connection: Connection): Try[Unit] = {
+    def addBagInfo(bagId: BagId, baseId: BaseId, created: DateTime, doi: Doi, urn: Urn)(implicit connection: Connection): Try[Unit] = {
       trace(bagId, baseId, created)
 
-      managed(connection.prepareStatement("INSERT INTO bag_info VALUES (?, ?, ?, ?);"))
+      managed(connection.prepareStatement("INSERT INTO bag_info VALUES (?, ?, ?, ?, ?);"))
         .map(prepStatement => {
           prepStatement.setString(1, bagId.toString)
           prepStatement.setString(2, baseId.toString)
           prepStatement.setString(3, created.toString(dateTimeFormatter))
           prepStatement.setString(4, doi)
+          prepStatement.setString(5, urn)
           prepStatement.executeUpdate()
         })
         .tried

@@ -50,6 +50,7 @@ trait BagIndexServletComponent {
         <base-id>{bagInfo.baseId.toString}</base-id>
         <created>{bagInfo.created.toString(dateTimeFormatter)}</created>
         <doi>{bagInfo.doi}</doi>
+        <urn>{bagInfo.urn}</urn>
       </bag-info>
     }
 
@@ -58,7 +59,8 @@ trait BagIndexServletComponent {
         ("bag-id" -> bagInfo.bagId.toString) ~
           ("base-id" -> bagInfo.baseId.toString) ~
           ("created" -> bagInfo.created.toString(dateTimeFormatter)) ~
-          ("doi" -> bagInfo.doi)
+          ("doi" -> bagInfo.doi) ~
+          ("urn" -> bagInfo.urn)
       }
     }
 
@@ -78,9 +80,9 @@ trait BagIndexServletComponent {
     }
 
     get("/search") {
-      def searchWithDoi(doi: Doi): Try[String] = {
+      def searchWithIdentifier(identifier: Identifier, identifierType: String): Try[String] = {
         databaseAccess.doTransaction(implicit c => {
-          database.getBagsWithDoi(doi)
+          database.getBagsWithIdentifier(identifier, identifierType)
             .map(createResponse[Seq[BagInfo]](relations => <result>{relations.map(toXml)}</result>)(relations => "result" -> relations.map(toJson)))
         })
       }
@@ -88,9 +90,9 @@ trait BagIndexServletComponent {
       Option(params)
         .filter(_.size > 0)
         .map(params => {
-          lazy val doi = params.get("doi").map(searchWithDoi)
-          doi
-            // other searches added here with .orElse
+          lazy val result = params.get("doi").map(searchWithIdentifier(_, "doi"))
+          result
+            .orElse(params.get("urn").map(searchWithIdentifier(_, "urn")))
             .getOrElse(Failure(new IllegalArgumentException("query parameter not supported")))
         })
         .getOrElse(Failure(new IllegalArgumentException("no search query specified")))
@@ -158,7 +160,7 @@ trait BagIndexServletComponent {
         case e: NotABagDirException => NotFound(e.getMessage)
         case e: InvalidIsVersionOfException => BadRequest(e.getMessage)
         case e: BagNotFoundException => NotFound(e.getMessage)
-        case e: NoDoiFoundException => BadRequest(e.getMessage)
+        case e: NoIdentifierFoundException => BadRequest(e.getMessage)
         case e: BagAlreadyInIndexException => BadRequest(e.getMessage)
         case e =>
           logger.error("Unexpected type of failure", e)
