@@ -70,6 +70,6 @@ class BagFacadeSpec extends TestSupportFixture with BagStoreFixture with Bagit5F
       .transform(XML.loadFile(datasetXML.toFile))
       .foreach(XML.save(modifiedXML.toString, _))
 
-    bagFacade.getUrn(modifiedXML) should matchPattern { case Failure(NoIdentifierFoundException("urn", `modifiedXML`)) => }
+    bagFacade.getUrn(modifiedXML) should matchPattern { case Failure(NoIdentifierFoundException(_, `modifiedXML`)) => }
   }
 }

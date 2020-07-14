@@ -40,10 +40,10 @@ class IndexBagStoreSpec extends TestSupportFixture
     indexFull.indexBagStore() shouldBe a[Success[_]]
 
     inside(database.getAllBagInfos) {
-      case Success(rels) => rels.map(rel => (rel.bagId, rel.baseId, rel.doi)) should contain allOf(
-        (uuid1, uuid1, doiMap(uuid1)),
-        (uuid2, uuid1, doiMap(uuid2)),
-        (uuid3, uuid1, doiMap(uuid3))
+      case Success(rels) => rels.map(rel => (rel.bagId, rel.baseId, rel.doi, rel.urn)) should contain allOf(
+        (uuid1, uuid1, doiMap(uuid1), urnMap(uuid1)),
+        (uuid2, uuid1, doiMap(uuid2), urnMap(uuid2)),
+        (uuid3, uuid1, doiMap(uuid3), urnMap(uuid3))
       )
     }
   }
