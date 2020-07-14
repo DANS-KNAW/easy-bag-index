@@ -123,37 +123,74 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
     database.getBagInfo(someBagId) should matchPattern { case Failure(BagIdNotFoundException(`someBagId`)) => }
   }
 
-  "getBagsWithDoi" should "return all bags with a certain DOI" in {
+  "getBagsWithIdentifier" should "return all bags with a certain DOI (identifierType 'doi')" in {
     val bagIds @ bagId1 :: bagId2 :: Nil = List.fill(2)(UUID.randomUUID())
     val times @ time1 :: time2 :: Nil = List(
       DateTime.parse("1992-07-30T16:00:00"),
       DateTime.now()
     )
     val dois @ doi1 :: _ = List.fill(2)("10.5072/dans-x6f-kf6x")
+    val urn = "urn:isan:0000-0000-2CEA-0000-1-0000-0000-Y"
 
     (bagIds, times, dois).zipped.toList
-      .map { case (bagId, time, doi) => database.addBagInfo(bagId, bagId, time, doi, "") }
+      .map { case (bagId, time, doi) => database.addBagInfo(bagId, bagId, time, doi, urn) }
       .collectResults shouldBe a[Success[_]]
 
     inside(database.getBagsWithIdentifier(doi1, "doi")) {
-      case Success(bags) => bags should (have size 2 and contain only(BagInfo(bagId1, bagId1, time1, doi1, ""), BagInfo(bagId2, bagId2, time2, doi1, "")))
+      case Success(bags) => bags should (have size 2 and contain only(BagInfo(bagId1, bagId1, time1, doi1, urn), BagInfo(bagId2, bagId2, time2, doi1, urn)))
     }
   }
 
-  it should "return the bag with a certain DOI if there is only one" in {
+  it should "return all bags with a certain URN (identifierType 'urn')" in {
+    val bagIds @ bagId1 :: bagId2 :: Nil = List.fill(2)(UUID.randomUUID())
+    val times @ time1 :: time2 :: Nil = List(
+      DateTime.parse("1992-07-30T16:00:00"),
+      DateTime.now()
+    )
+    val urns @ urn1 :: _ = List.fill(2)("urn:isan:0000-0000-2CEA-0000-1-0000-0000-Y")
+
+    (bagIds, times, urns).zipped.toList
+      .map { case (bagId, time, urn) => database.addBagInfo(bagId, bagId, time, "", urn) }
+      .collectResults shouldBe a[Success[_]]
+
+    inside(database.getBagsWithIdentifier(urn1, "urn")) {
+      case Success(bags) => bags should (have size 2 and contain only(BagInfo(bagId1, bagId1, time1, "", urn1), BagInfo(bagId2, bagId2, time2, "", urn1)))
+    }
+  }
+
+  it should "return the bag with a certain DOI if there is only one (identifierType 'doi')" in {
     val bagId = UUID.randomUUID()
     val time = DateTime.parse("1992-07-30T16:00:00")
     val doi = "10.5072/dans-x6f-kf6x"
+    val urn = "urn:isan:0000-0000-2CEA-0000-1-0000-0000-Y"
 
-    database.addBagInfo(bagId, bagId, time, doi, "") shouldBe a[Success[_]]
+    database.addBagInfo(bagId, bagId, time, doi, urn) shouldBe a[Success[_]]
 
     inside(database.getBagsWithIdentifier(doi, "doi")) {
-      case Success(bags) => bags should (have size 1 and contain only BagInfo(bagId, bagId, time, doi, ""))
+      case Success(bags) => bags should (have size 1 and contain only BagInfo(bagId, bagId, time, doi, urn))
+    }
+  }
+
+  it should "return the bag with a certain URN if there is only one (identifierType 'urn')" in {
+    val bagId = UUID.randomUUID()
+    val time = DateTime.parse("1992-07-30T16:00:00")
+    val urn = "urn:isan:0000-0000-2CEA-0000-1-0000-0000-Y"
+
+    database.addBagInfo(bagId, bagId, time, "", urn) shouldBe a[Success[_]]
+
+    inside(database.getBagsWithIdentifier(urn, "urn")) {
+      case Success(bags) => bags should (have size 1 and contain only BagInfo(bagId, bagId, time, "", urn))
     }
   }
 
   it should "return an empty sequence when the DOI isn't found" in {
     inside(database.getBagsWithIdentifier("10.5072/dans-x6f-kf6x", "doi")) {
+      case Success(bags) => bags shouldBe empty
+    }
+  }
+
+  it should "return an empty sequence when the URN isn't found" in {
+    inside(database.getBagsWithIdentifier("urn:isan:0000-0000-2CEA-0000-1-0000-0000-Y", "urn")) {
       case Success(bags) => bags shouldBe empty
     }
   }
