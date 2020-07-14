@@ -61,7 +61,7 @@ class BagIndexServletSpec extends TestSupportFixture
     }
   }
 
-  "get search" should "search for a doi and return the appropriate JSON String if the accept header is specified" in {
+  "get search with doi parameter" should "search for a doi and return the appropriate JSON String if the accept header is specified" in {
     val uuid1 = UUID.fromString("00000000-0000-0000-0000-000000000001")
     val uuid2 = UUID.fromString("00000000-0000-0000-0000-000000000002")
     val uuid3 = UUID.fromString("00000000-0000-0000-0000-000000000003")
@@ -119,6 +119,72 @@ class BagIndexServletSpec extends TestSupportFixture
   it should "return an empty result when the doi parameter is not found" in {
     val doi = "10.5072/dans-2xg-umq8"
     get("/search", params = Seq("doi" -> doi), headers = Seq("Accept" -> "application/json")) {
+      status shouldBe 200
+      body shouldBe
+        s"""{
+           |  "result":[]
+           |}""".stripMargin
+    }
+  }
+
+  "get search with urn parameter" should "search for a urn and return the appropriate JSON String if the accept header is specified" in {
+    val uuid1 = UUID.fromString("00000000-0000-0000-0000-000000000001")
+    val uuid2 = UUID.fromString("00000000-0000-0000-0000-000000000002")
+    val uuid3 = UUID.fromString("00000000-0000-0000-0000-000000000003")
+    index.addFromBagStore(uuid1) shouldBe a[Success[_]]
+    index.addFromBagStore(uuid2) shouldBe a[Success[_]]
+    index.addFromBagStore(uuid3) shouldBe a[Success[_]]
+
+    val doi = "10.5072/dans-2xg-umq8"
+    val urn = "urn:isan:0000-0000-2CEA-0000-1-0000-0000-Y"
+    val created = DateTime.parse("2017-01-16T14:35:00.888")
+    get("/search", params = Seq("urn" -> urn), headers = Seq("Accept" -> "application/json")) {
+      status shouldBe 200
+      body shouldBe
+        s"""{
+           |  "result":[{
+           |    "bag-info":{
+           |      "bag-id":"$uuid1",
+           |      "base-id":"$uuid1",
+           |      "created":"${ created.toString(dateTimeFormatter) }",
+           |      "doi":"$doi",
+           |      "urn":"$urn"
+           |    }
+           |  }]
+           |}""".stripMargin
+    }
+  }
+
+  it should "search for a urn and return the appropriate XML if the accept header is specified" in {
+    val uuid1 = UUID.fromString("00000000-0000-0000-0000-000000000001")
+    val uuid2 = UUID.fromString("00000000-0000-0000-0000-000000000002")
+    val uuid3 = UUID.fromString("00000000-0000-0000-0000-000000000003")
+    index.addFromBagStore(uuid1) shouldBe a[Success[_]]
+    index.addFromBagStore(uuid2) shouldBe a[Success[_]]
+    index.addFromBagStore(uuid3) shouldBe a[Success[_]]
+
+    val doi = "10.5072/dans-2xg-umq0"
+    val urn = "urn:isan:0000-0000-2CEA-0000-3-0000-0000-Y"
+    val created = DateTime.parse("2017-01-18T14:35:00.888")
+    get("/search", params = Seq("urn" -> urn), headers = Seq("Accept" -> "text/xml")) {
+      status shouldBe 200
+      XML.loadString(body) should equalTrimmed {
+        <result>
+          <bag-info>
+            <bag-id>{uuid3}</bag-id>
+            <base-id>{uuid1}</base-id>
+            <created>{created.toString(dateTimeFormatter)}</created>
+            <doi>{doi}</doi>
+            <urn>{urn}</urn>
+          </bag-info>
+        </result>
+      }
+    }
+  }
+
+  it should "return an empty result when the urn parameter is not found" in {
+    val urn = "urn:isan:0000-0000-2CEA-0000-9-0000-0000-Y"
+    get("/search", params = Seq("urn" -> urn), headers = Seq("Accept" -> "application/json")) {
       status shouldBe 200
       body shouldBe
         s"""{
