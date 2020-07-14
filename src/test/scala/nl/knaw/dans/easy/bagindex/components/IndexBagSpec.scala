@@ -183,7 +183,7 @@ class IndexBagSpec extends TestSupportFixture
     assertAdditionReturnedExpectedBaseId(baseId, baseId)
     assertAdditionReturnedExpectedBaseId(bagId, baseId)
 
-    assertBagInfoInDatabase(BagInfo(baseId, baseId, DateTime.parse("2017-01-16T14:35:00.888+01:00", ISODateTimeFormat.dateTime()), doiMap(baseId), urnMap(bagId)))
+    assertBagInfoInDatabase(BagInfo(baseId, baseId, DateTime.parse("2017-01-16T14:35:00.888+01:00", ISODateTimeFormat.dateTime()), doiMap(baseId), urnMap(baseId)))
     assertBagInfoInDatabase(BagInfo(bagId, baseId, DateTime.parse("2017-01-17T14:35:00.888+01:00", ISODateTimeFormat.dateTime()), doiMap(bagId), urnMap(bagId)))
   }
 

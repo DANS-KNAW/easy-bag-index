@@ -30,7 +30,7 @@ class BagFacadeSpec extends TestSupportFixture with BagStoreFixture with Bagit5F
     bagFacade.getDoi(bagStoreBaseDir.resolve("00/000000000000000000000000000001/bag-revision-1/metadata/dataset.xml")) should matchPattern { case Success(`doi`) => }
   }
 
-  it should "fail if the dataset.xml file did not contain a DOI identifier" in {
+  it should "return empty string if the dataset.xml file did not contain a DOI identifier" in {
     val datasetXML = bagStoreBaseDir.resolve("00/000000000000000000000000000001/bag-revision-1/metadata/dataset.xml")
 
     object RemoveDOI extends RewriteRule {
@@ -44,6 +44,6 @@ class BagFacadeSpec extends TestSupportFixture with BagStoreFixture with Bagit5F
       .transform(XML.loadFile(datasetXML.toFile))
       .foreach(XML.save(datasetXML.toString, _))
 
-    bagFacade.getDoi(datasetXML) should matchPattern { case Failure(NoIdentifierFoundException("doi", `datasetXML`)) => }
+    bagFacade.getDoi(datasetXML) should matchPattern { case Success("") => }
   }
 }

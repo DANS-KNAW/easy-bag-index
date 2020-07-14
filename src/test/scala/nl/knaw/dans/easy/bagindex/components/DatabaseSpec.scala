@@ -115,12 +115,12 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
     (bagIds zip times zip dois zip urns)
       .foreach { case (((bagId, created), doi), urn) => database.getBagInfo(bagId) should matchPattern { case Success(BagInfo(`bagId`, `baseId`, `created`, `doi`, `urn`)) => }
       }
+  }
 
-    it should "return a BagIdNotFoundException when the given bagId does not exist in the database" in {
-      // Note: the database is empty at this point!
-      val someBagId = UUID.randomUUID()
-      database.getBagInfo(someBagId) should matchPattern { case Failure(BagIdNotFoundException(`someBagId`)) => }
-    }
+  it should "return a BagIdNotFoundException when the given bagId does not exist in the database" in {
+    // Note: the database is empty at this point!
+    val someBagId = UUID.randomUUID()
+    database.getBagInfo(someBagId) should matchPattern { case Failure(BagIdNotFoundException(`someBagId`)) => }
   }
 
   "getBagsWithDoi" should "return all bags with a certain DOI" in {
