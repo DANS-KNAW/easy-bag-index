@@ -51,5 +51,6 @@ trait BagStoreFixture extends BagStoreAccessComponent {
   )
 
   def doiMap(uuidString: String): String = doiMap(UUID.fromString(uuidString))
+
   def urnMap(uuidString: String): String = urnMap(UUID.fromString(uuidString))
 }

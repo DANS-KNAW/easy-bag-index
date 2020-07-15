@@ -120,9 +120,9 @@ trait DatabaseComponent extends DebugEnhancedLogging {
     /**
      * Returns a sequence of all bag relations that have a given `DOI`.
      *
-     * @param identifier      the identifier to be searched
-     * @param identifierType  the identifier type (doi/urn)
-     * @param connection      the connection to the database on which the query needs to be run
+     * @param identifier     the identifier to be searched
+     * @param identifierType the identifier type (doi/urn)
+     * @param connection     the connection to the database on which the query needs to be run
      * @return a list of bag relations with a given `DOI`
      */
     def getBagsWithIdentifier(identifier: Identifier, identifierType: String)(implicit connection: Connection): Try[Seq[BagInfo]] = {

@@ -291,17 +291,18 @@ class BagIndexServletSpec extends TestSupportFixture
     val created = DateTime.parse("2017-01-16T14:35:00.888")
     get(s"/bags/$uuid1", headers = Seq()) {
       status shouldBe 200
-      body shouldBe s"""{
-                      |  "result":{
-                      |    "bag-info":{
-                      |      "bag-id":"$uuid1",
-                      |      "base-id":"$uuid1",
-                      |      "created":"${created.toString(dateTimeFormatter)}",
-                      |      "doi":"$doi",
-                      |      "urn":"$urn"
-                      |    }
-                      |  }
-                      |}""".stripMargin
+      body shouldBe
+        s"""{
+           |  "result":{
+           |    "bag-info":{
+           |      "bag-id":"$uuid1",
+           |      "base-id":"$uuid1",
+           |      "created":"${ created.toString(dateTimeFormatter) }",
+           |      "doi":"$doi",
+           |      "urn":"$urn"
+           |    }
+           |  }
+           |}""".stripMargin
     }
   }
 
