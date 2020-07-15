@@ -4,7 +4,7 @@ info:
   version: 1.2.3
   description: |
     This document specifies the Bag Index Service API. It provides relational metadata about items in the bag stores.
-    This API implements the operations `GET` on the paths `/`, `/bag-sequence?contains=:UUID`, `/search?doi=:DOI` and `/bags/:UUID` and implements the operation PUT on `/bags/:UUID`
+    This API implements the operations `GET` on the paths `/`, `/bag-sequence?contains=:UUID`, `/search?doi=:DOI`, `/search?urn=:URN` and `/bags/:UUID` and implements the operation PUT on `/bags/:UUID`
     It is not neccessary for this service to supply the bag store the bag is stored in.
 
   license:
@@ -39,6 +39,30 @@ paths:
 
       parameters:
         - $ref: '#/components/parameters/DOI'
+
+      responses:
+        200:
+          description: Bag index object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/bagIndexArrayOk"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/bagIndexArrayOk"
+        400:
+          description: The query parameter was not supported.
+        500:
+          $ref: '#/components/responses/Unavailable'
+
+  /search?urn={URN}:
+    get:
+      summary: Returns the Bag Index metadata for all items related to a digital object identifier.
+      description: |
+        The item fetched is specified by the URN. The results can contain more than one bag-info object.
+
+      parameters:
+        - $ref: '#/components/parameters/URN'
 
       responses:
         200:
@@ -124,7 +148,7 @@ paths:
             * The bag has already been added to the index.
             * The UUID was syntactically incorrect.
             * The bag could not read, and may have been corrupt.
-            * The DOI could not be found in the bag's metadata.
+            * The URN could not be found in the bag's metadata.
             * Bag-info.txt contains an invalid Is-Version-Of identifier tag.
         404:
           description: A bag with the specified item-id could not be found.
@@ -148,6 +172,13 @@ components:
         type: string
       required: true
       description: digital object identifier of the targeted bag
+    URN:
+      in: path
+      name: URN
+      schema:
+        type: string
+      required: true
+      description: digital object identifier of the targeted bag
 
   responses:
     Unavailable:
@@ -165,6 +196,7 @@ components:
             base-id: 40594b6d-8378-4260-b96b-13b57beadf7c,
             created: 2015-05-19T00:00:00.000+02:00,
             doi: 10.17026/test-x6f-kf66
+            urn: urn:nbn:nl:ui:13-00-1haq
       properties:
         result:
           type: object
@@ -184,6 +216,9 @@ components:
                 doi:
                   type: string
                   format: "doi"
+                urn:
+                  type: string
+                  format: "urn"
 
     bagIndexArrayOk:
       type: object
@@ -194,6 +229,7 @@ components:
               base-id: 40594b6d-8378-4260-b96b-13b57beadf7c,
               created: 2015-05-19T00:00:00.000+02:00,
               doi: 10.17026/test-x6f-kf66
+              urn: urn:nbn:nl:ui:13-00-1haq
       properties:
         result:
           type: array
@@ -214,6 +250,9 @@ components:
                   doi:
                     type: string
                     format: "doi"
+                  urn:
+                    type: string
+                    format: "urn"
 
     bagSequenceOk:
       type: string

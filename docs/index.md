@@ -46,7 +46,8 @@ easy-bag-index index 40594b6d-8378-4260-b96b-13b57beadf7c
       "bag-id":"40594b6d-8378-4260-b96b-13b57beadf7c",
       "base-id":"40594b6d-8378-4260-b96b-13b57beadf7c",
       "created":"2015-05-19T00:00:00.000+02:00",
-      "doi":"10.5072/dans-x6f-kf66"
+      "doi":"10.5072/dans-x6f-kf66",
+      "urn":"urn:nbn:nl:ui:13-00-1haq"
     }
   }
 }
