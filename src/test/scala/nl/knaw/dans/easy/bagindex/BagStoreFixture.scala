@@ -45,9 +45,9 @@ trait BagStoreFixture extends BagStoreAccessComponent {
     UUID.fromString("00000000-0000-0000-0000-000000000003") -> "10.5072/dans-2xg-umq0"
   )
   lazy val urnMap = Map(
-    UUID.fromString("00000000-0000-0000-0000-000000000001") -> "urn:isan:0000-0000-2CEA-0000-1-0000-0000-Y",
-    UUID.fromString("00000000-0000-0000-0000-000000000002") -> "urn:isan:0000-0000-2CEA-0000-2-0000-0000-Y",
-    UUID.fromString("00000000-0000-0000-0000-000000000003") -> "urn:isan:0000-0000-2CEA-0000-3-0000-0000-Y"
+    UUID.fromString("00000000-0000-0000-0000-000000000001") -> "urn:nbn:nl:ui:13-00-1haq",
+    UUID.fromString("00000000-0000-0000-0000-000000000002") -> "urn:nbn:nl:ui:13-00-2haq",
+    UUID.fromString("00000000-0000-0000-0000-000000000003") -> "urn:nbn:nl:ui:13-00-3haq"
   )
 
   def doiMap(uuidString: String): String = doiMap(UUID.fromString(uuidString))

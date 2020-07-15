@@ -71,16 +71,16 @@ class IndexBagStoreDatabaseSpec extends TestSupportFixture
     val doiZ = "10.5072/dans-z6f-kf66"
 
     // urns
-    val urnA = "urn:isan:0000-0000-2CEA-0000-1-0000-0000-A"
-    val urnB = "urn:isan:0000-0000-2CEA-0000-1-0000-0000-B"
-    val urnC = "urn:isan:0000-0000-2CEA-0000-1-0000-0000-C"
-    val urnD = "urn:isan:0000-0000-2CEA-0000-1-0000-0000-D"
-    val urnE = "urn:isan:0000-0000-2CEA-0000-1-0000-0000-E"
-    val urnF = "urn:isan:0000-0000-2CEA-0000-1-0000-0000-F"
-    val urnG = "urn:isan:0000-0000-2CEA-0000-1-0000-0000-G"
-    val urnX = "urn:isan:0000-0000-2CEA-0000-1-0000-0000-X"
-    val urnY = "urn:isan:0000-0000-2CEA-0000-1-0000-0000-Y"
-    val urnZ = "urn:isan:0000-0000-2CEA-0000-1-0000-0000-Z"
+    val urnA = "urn:nbn:nl:ui:13-00-A"
+    val urnB = "urn:nbn:nl:ui:13-00-B"
+    val urnC = "urn:nbn:nl:ui:13-00-C"
+    val urnD = "urn:nbn:nl:ui:13-00-D"
+    val urnE = "urn:nbn:nl:ui:13-00-E"
+    val urnF = "urn:nbn:nl:ui:13-00-F"
+    val urnG = "urn:nbn:nl:ui:13-00-G"
+    val urnX = "urn:nbn:nl:ui:13-00-X"
+    val urnY = "urn:nbn:nl:ui:13-00-Y"
+    val urnZ = "urn:nbn:nl:ui:13-00-Z"
 
     val relations = BagInfo(bagIdA, bagIdE, dateA, doiA, urnA) ::
       BagInfo(bagIdB, bagIdA, dateB, doiB, urnB) ::

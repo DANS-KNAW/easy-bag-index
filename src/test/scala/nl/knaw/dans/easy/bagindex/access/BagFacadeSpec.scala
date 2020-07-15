@@ -51,7 +51,7 @@ class BagFacadeSpec extends TestSupportFixture with BagStoreFixture with Bagit5F
   }
 
   "getUrn" should "find the URN identifier in a metadata/dataset.xml file" in {
-    val urn = "urn:isan:0000-0000-2CEA-0000-1-0000-0000-Y"
+    val urn = "urn:nbn:nl:ui:13-00-1haq"
     bagFacade.getUrn(bagStoreBaseDir.resolve("00/000000000000000000000000000001/bag-revision-1/metadata/dataset.xml")) should matchPattern { case Success(`urn`) => }
   }
 

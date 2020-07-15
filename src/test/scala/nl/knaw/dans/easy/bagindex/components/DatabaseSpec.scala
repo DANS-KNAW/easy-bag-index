@@ -35,7 +35,7 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
       DateTime.now()
     )
     val dois = List("10.5072/dans-x6f-kf6x", "10.5072/dans-x6f-kf66", "10.5072/dans-y7g-lg77")
-    val urns = List("urn:isan:0000-0000-2CEA-0000-1-0000-0000-Y", "urn:isbn:0451450523", "urn:nbn:de:bvb:19-146642")
+    val urns = List("urn:nbn:nl:ui:13-00-1haq", "urn:nbn:nl:ui:13-00-2haq", "urn:nbn:nl:ui:13-00-3haq")
 
     (bagIds zip times zip dois zip urns)
       .map { case (((bagId, time), doi), urn) => database.addBagInfo(bagId, baseId, time, doi, urn) }
@@ -56,7 +56,7 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
     val bagId = UUID.randomUUID()
     val time = DateTime.now()
     val doi = "10.5072/dans-x6f-kf6x"
-    val urn = "urn:nbn:de:bvb:19-146642"
+    val urn = "urn:nbn:nl:ui:13-00-1haq"
 
     database.addBagInfo(bagId, bagId, time, doi, urn) shouldBe a[Success[_]]
 
@@ -72,7 +72,7 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
       DateTime.parse("2004-01-01"),
       DateTime.now()
     )
-    val urns1 = List("urn:isan:0000-0000-2CEA-0000-1-0000-0000-Y", "urn:isbn:0451450523", "urn:nbn:de:bvb:19-146642")
+    val urns1 = List("urn:nbn:nl:ui:13-00-1haq", "urn:nbn:nl:ui:13-00-2haq", "urn:nbn:nl:ui:13-00-3haq")
 
     val bagIds2 @ (baseId2 :: _) = List.fill(5)(UUID.randomUUID())
     val times2 = List(
@@ -82,7 +82,7 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
       DateTime.parse("2017-03-09"),
       DateTime.parse("2018")
     )
-    val urns2 = List("urn:uuid:6e8bc430-9c3a-11d9-9669-0800200c9a66", "urn:isbn:0451450523", "urn:ISSN:0167-6423", "urn:ietf:rfc:2648", "urn:mpeg:mpeg7:schema:2001")
+    val urns2 = List("urn:nbn:nl:ui:13-00-4haq", "urn:nbn:nl:ui:13-00-5haq", "urn:nbn:nl:ui:13-00-6haq", "urn:nbn:nl:ui:13-00-7haq", "urn:nbn:nl:ui:13-00-8haq")
 
     List(
       ((bagIds1, times1, urns1).zipped.toList, baseId1),
@@ -106,7 +106,7 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
       DateTime.now()
     )
     val dois = List("10.5072/dans-x6f-kf6x", "10.5072/dans-x6f-kf66", "10.5072/dans-y7g-lg77")
-    val urns = List("urn:isan:0000-0000-2CEA-0000-1-0000-0000-Y", "urn:isbn:0451450523", "urn:nbn:de:bvb:19-146642")
+    val urns = List("urn:nbn:nl:ui:13-00-1haq", "urn:nbn:nl:ui:13-00-2haq", "urn:nbn:nl:ui:13-00-3haq")
 
     (bagIds zip times zip dois zip urns)
       .map { case (((bagId, time), doi), urn) => database.addBagInfo(bagId, baseId, time, doi, urn) }
@@ -130,7 +130,7 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
       DateTime.now()
     )
     val dois @ doi1 :: _ = List.fill(2)("10.5072/dans-x6f-kf6x")
-    val urn = "urn:isan:0000-0000-2CEA-0000-1-0000-0000-Y"
+    val urn = "urn:nbn:nl:ui:13-00-1haq"
 
     (bagIds, times, dois).zipped.toList
       .map { case (bagId, time, doi) => database.addBagInfo(bagId, bagId, time, doi, urn) }
@@ -147,7 +147,7 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
       DateTime.parse("1992-07-30T16:00:00"),
       DateTime.now()
     )
-    val urns @ urn1 :: _ = List.fill(2)("urn:isan:0000-0000-2CEA-0000-1-0000-0000-Y")
+    val urns @ urn1 :: _ = List.fill(2)("urn:nbn:nl:ui:13-00-1haq")
 
     (bagIds, times, urns).zipped.toList
       .map { case (bagId, time, urn) => database.addBagInfo(bagId, bagId, time, "", urn) }
@@ -162,7 +162,7 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
     val bagId = UUID.randomUUID()
     val time = DateTime.parse("1992-07-30T16:00:00")
     val doi = "10.5072/dans-x6f-kf6x"
-    val urn = "urn:isan:0000-0000-2CEA-0000-1-0000-0000-Y"
+    val urn = "urn:nbn:nl:ui:13-00-1haq"
 
     database.addBagInfo(bagId, bagId, time, doi, urn) shouldBe a[Success[_]]
 
@@ -174,7 +174,7 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
   it should "return the bag with a certain URN if there is only one (identifierType 'urn')" in {
     val bagId = UUID.randomUUID()
     val time = DateTime.parse("1992-07-30T16:00:00")
-    val urn = "urn:isan:0000-0000-2CEA-0000-1-0000-0000-Y"
+    val urn = "urn:nbn:nl:ui:13-00-1haq"
 
     database.addBagInfo(bagId, bagId, time, "", urn) shouldBe a[Success[_]]
 
@@ -203,7 +203,7 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
       DateTime.now()
     )
     val dois = List("10.5072/dans-x6f-kf6x", "10.5072/dans-x6f-kf66", "10.5072/dans-y7g-lg77")
-    val urns = List("urn:isan:0000-0000-2CEA-0000-1-0000-0000-Y", "urn:isbn:0451450523", "urn:nbn:de:bvb:19-146642")
+    val urns = List("urn:nbn:nl:ui:13-00-1haq", "urn:nbn:nl:ui:13-00-2haq", "urn:nbn:nl:ui:13-00-3haq")
 
     (bagIds zip times zip dois zip urns)
       .map { case (((bagId, time), doi), urn) => database.addBagInfo(bagId, baseId, time, doi, urn) }
@@ -221,7 +221,7 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
     val baseId = UUID.randomUUID()
     val time = DateTime.now()
     val doi = "10.5072/dans-x6f-kf66"
-    val urn = "urn:nbn:de:bvb:19-146642"
+    val urn = "urn:nbn:nl:ui:13-00-1haq"
 
     val result1 = database.addBagInfo(bagId, baseId, time, doi, urn)
     val result2 = database.addBagInfo(bagId, baseId, time, doi, urn)
