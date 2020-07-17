@@ -57,7 +57,7 @@ paths:
 
   /search?urn={URN}:
     get:
-      summary: Returns the Bag Index metadata for all items related to a digital object identifier.
+      summary: Returns the Bag Index metadata for all items related to a URN:NBN (National Bibliographic Number).
       description: |
         The item fetched is specified by the URN. The results can contain more than one bag-info object.
 
@@ -178,7 +178,7 @@ components:
       schema:
         type: string
       required: true
-      description: digital object identifier of the targeted bag
+      description: Uniform Resource Name of the targeted bag
 
   responses:
     Unavailable:
