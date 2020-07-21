@@ -61,7 +61,7 @@ class BagIndexServletSpec extends TestSupportFixture
     }
   }
 
-  "get search" should "search for a doi and return the appropriate JSON String if the accept header is specified" in {
+  "get search with doi parameter" should "search for a doi and return the appropriate JSON String if the accept header is specified" in {
     val uuid1 = UUID.fromString("00000000-0000-0000-0000-000000000001")
     val uuid2 = UUID.fromString("00000000-0000-0000-0000-000000000002")
     val uuid3 = UUID.fromString("00000000-0000-0000-0000-000000000003")
@@ -70,6 +70,7 @@ class BagIndexServletSpec extends TestSupportFixture
     index.addFromBagStore(uuid3) shouldBe a[Success[_]]
 
     val doi = "10.5072/dans-2xg-umq8"
+    val urn = "urn:nbn:nl:ui:13-00-1haq"
     val created = DateTime.parse("2017-01-16T14:35:00.888")
     get("/search", params = Seq("doi" -> doi), headers = Seq("Accept" -> "application/json")) {
       status shouldBe 200
@@ -80,7 +81,8 @@ class BagIndexServletSpec extends TestSupportFixture
            |      "bag-id":"$uuid1",
            |      "base-id":"$uuid1",
            |      "created":"${ created.toString(dateTimeFormatter) }",
-           |      "doi":"$doi"
+           |      "doi":"$doi",
+           |      "urn":"$urn"
            |    }
            |  }]
            |}""".stripMargin
@@ -96,6 +98,7 @@ class BagIndexServletSpec extends TestSupportFixture
     index.addFromBagStore(uuid3) shouldBe a[Success[_]]
 
     val doi = "10.5072/dans-2xg-umq0"
+    val urn = "urn:nbn:nl:ui:13-00-3haq"
     val created = DateTime.parse("2017-01-18T14:35:00.888")
     get("/search", params = Seq("doi" -> doi), headers = Seq("Accept" -> "text/xml")) {
       status shouldBe 200
@@ -106,6 +109,7 @@ class BagIndexServletSpec extends TestSupportFixture
             <base-id>{uuid1}</base-id>
             <created>{created.toString(dateTimeFormatter)}</created>
             <doi>{doi}</doi>
+            <urn>{urn}</urn>
           </bag-info>
         </result>
       }
@@ -115,6 +119,72 @@ class BagIndexServletSpec extends TestSupportFixture
   it should "return an empty result when the doi parameter is not found" in {
     val doi = "10.5072/dans-2xg-umq8"
     get("/search", params = Seq("doi" -> doi), headers = Seq("Accept" -> "application/json")) {
+      status shouldBe 200
+      body shouldBe
+        s"""{
+           |  "result":[]
+           |}""".stripMargin
+    }
+  }
+
+  "get search with urn parameter" should "search for a urn and return the appropriate JSON String if the accept header is specified" in {
+    val uuid1 = UUID.fromString("00000000-0000-0000-0000-000000000001")
+    val uuid2 = UUID.fromString("00000000-0000-0000-0000-000000000002")
+    val uuid3 = UUID.fromString("00000000-0000-0000-0000-000000000003")
+    index.addFromBagStore(uuid1) shouldBe a[Success[_]]
+    index.addFromBagStore(uuid2) shouldBe a[Success[_]]
+    index.addFromBagStore(uuid3) shouldBe a[Success[_]]
+
+    val doi = "10.5072/dans-2xg-umq8"
+    val urn = "urn:nbn:nl:ui:13-00-1haq"
+    val created = DateTime.parse("2017-01-16T14:35:00.888")
+    get("/search", params = Seq("urn" -> urn), headers = Seq("Accept" -> "application/json")) {
+      status shouldBe 200
+      body shouldBe
+        s"""{
+           |  "result":[{
+           |    "bag-info":{
+           |      "bag-id":"$uuid1",
+           |      "base-id":"$uuid1",
+           |      "created":"${ created.toString(dateTimeFormatter) }",
+           |      "doi":"$doi",
+           |      "urn":"$urn"
+           |    }
+           |  }]
+           |}""".stripMargin
+    }
+  }
+
+  it should "search for a urn and return the appropriate XML if the accept header is specified" in {
+    val uuid1 = UUID.fromString("00000000-0000-0000-0000-000000000001")
+    val uuid2 = UUID.fromString("00000000-0000-0000-0000-000000000002")
+    val uuid3 = UUID.fromString("00000000-0000-0000-0000-000000000003")
+    index.addFromBagStore(uuid1) shouldBe a[Success[_]]
+    index.addFromBagStore(uuid2) shouldBe a[Success[_]]
+    index.addFromBagStore(uuid3) shouldBe a[Success[_]]
+
+    val doi = "10.5072/dans-2xg-umq0"
+    val urn = "urn:nbn:nl:ui:13-00-3haq"
+    val created = DateTime.parse("2017-01-18T14:35:00.888")
+    get("/search", params = Seq("urn" -> urn), headers = Seq("Accept" -> "text/xml")) {
+      status shouldBe 200
+      XML.loadString(body) should equalTrimmed {
+        <result>
+          <bag-info>
+            <bag-id>{uuid3}</bag-id>
+            <base-id>{uuid1}</base-id>
+            <created>{created.toString(dateTimeFormatter)}</created>
+            <doi>{doi}</doi>
+            <urn>{urn}</urn>
+          </bag-info>
+        </result>
+      }
+    }
+  }
+
+  it should "return an empty result when the urn parameter is not found" in {
+    val urn = "urn:nbn:nl:ui:13-00-9haq"
+    get("/search", params = Seq("urn" -> urn), headers = Seq("Accept" -> "application/json")) {
       status shouldBe 200
       body shouldBe
         s"""{
@@ -195,6 +265,7 @@ class BagIndexServletSpec extends TestSupportFixture
     index.addFromBagStore(uuid3) shouldBe a[Success[_]]
 
     val doi = "10.5072/dans-2xg-umq0"
+    val urn = "urn:nbn:nl:ui:13-00-3haq"
     val created = DateTime.parse("2017-01-18T14:35:00.888")
     get(s"/bags/$uuid3", headers = Seq("Accept" -> "application/xml")) {
       status shouldBe 200
@@ -205,6 +276,7 @@ class BagIndexServletSpec extends TestSupportFixture
             <base-id>{uuid1}</base-id>
             <created>{created.toString(dateTimeFormatter)}</created>
             <doi>{doi}</doi>
+            <urn>{urn}</urn>
           </bag-info>
         </result>
       }
@@ -215,19 +287,22 @@ class BagIndexServletSpec extends TestSupportFixture
     val uuid1 = UUID.fromString("00000000-0000-0000-0000-000000000001")
     index.addFromBagStore(uuid1) shouldBe a[Success[_]]
     val doi = "10.5072/dans-2xg-umq8"
+    val urn = "urn:nbn:nl:ui:13-00-1haq"
     val created = DateTime.parse("2017-01-16T14:35:00.888")
     get(s"/bags/$uuid1", headers = Seq()) {
       status shouldBe 200
-      body shouldBe s"""{
-                      |  "result":{
-                      |    "bag-info":{
-                      |      "bag-id":"$uuid1",
-                      |      "base-id":"$uuid1",
-                      |      "created":"${created.toString(dateTimeFormatter)}",
-                      |      "doi":"$doi"
-                      |    }
-                      |  }
-                      |}""".stripMargin
+      body shouldBe
+        s"""{
+           |  "result":{
+           |    "bag-info":{
+           |      "bag-id":"$uuid1",
+           |      "base-id":"$uuid1",
+           |      "created":"${ created.toString(dateTimeFormatter) }",
+           |      "doi":"$doi",
+           |      "urn":"$urn"
+           |    }
+           |  }
+           |}""".stripMargin
     }
   }
 
@@ -267,7 +342,7 @@ class BagIndexServletSpec extends TestSupportFixture
     put(s"/bags/$uuid2") {
       status shouldBe 201
       body shouldBe empty
-      database.getBagInfo(uuid2) should matchPattern { case Success(BagInfo(`uuid2`, `uuid1`, _, _)) => }
+      database.getBagInfo(uuid2) should matchPattern { case Success(BagInfo(`uuid2`, `uuid1`, _, _, _)) => }
     }
   }
 
@@ -278,7 +353,7 @@ class BagIndexServletSpec extends TestSupportFixture
     put(s"/bags/$uuid1") {
       status shouldBe 400
       body shouldBe s"Bag '$uuid1' is already in the index"
-      database.getBagInfo(uuid1) should matchPattern { case Success(BagInfo(`uuid1`, `uuid1`, _, _)) => }
+      database.getBagInfo(uuid1) should matchPattern { case Success(BagInfo(`uuid1`, `uuid1`, _, _, _)) => }
     }
   }
 

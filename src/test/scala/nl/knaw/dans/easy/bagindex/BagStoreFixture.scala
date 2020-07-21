@@ -37,13 +37,20 @@ trait BagStoreFixture extends BagStoreAccessComponent {
   }
 
   /**
-   * these are the UUID -> DOI mappings from the bag-store in `test/resources/bag-store`
+   * these are the UUID -> DOI/URN mappings from the bag-store in `test/resources/bag-store`
    */
   lazy val doiMap = Map(
     UUID.fromString("00000000-0000-0000-0000-000000000001") -> "10.5072/dans-2xg-umq8",
     UUID.fromString("00000000-0000-0000-0000-000000000002") -> "10.5072/dans-2xg-umq9",
     UUID.fromString("00000000-0000-0000-0000-000000000003") -> "10.5072/dans-2xg-umq0"
   )
+  lazy val urnMap = Map(
+    UUID.fromString("00000000-0000-0000-0000-000000000001") -> "urn:nbn:nl:ui:13-00-1haq",
+    UUID.fromString("00000000-0000-0000-0000-000000000002") -> "urn:nbn:nl:ui:13-00-2haq",
+    UUID.fromString("00000000-0000-0000-0000-000000000003") -> "urn:nbn:nl:ui:13-00-3haq"
+  )
 
   def doiMap(uuidString: String): String = doiMap(UUID.fromString(uuidString))
+
+  def urnMap(uuidString: String): String = urnMap(UUID.fromString(uuidString))
 }

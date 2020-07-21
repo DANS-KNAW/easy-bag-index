@@ -15,8 +15,6 @@
  */
 package nl.knaw.dans.easy.bagindex.command
 
-import java.util.UUID
-
 import nl.knaw.dans.easy.bagindex.{ BagId, ConfigurationComponent }
 import nl.knaw.dans.lib.string._
 import org.joda.time.DateTime

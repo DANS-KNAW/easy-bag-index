@@ -15,7 +15,9 @@
  */
 package nl.knaw.dans.easy.bagindex.access
 
-import nl.knaw.dans.easy.bagindex.{ BagStoreFixture, Bagit5Fixture, NoDoiFoundException, TestSupportFixture }
+import java.nio.file.Paths
+
+import nl.knaw.dans.easy.bagindex.{ BagStoreFixture, Bagit5Fixture, NoIdentifierFoundException, TestSupportFixture }
 
 import scala.util.{ Failure, Success }
 import scala.xml.transform.{ RewriteRule, RuleTransformer }
@@ -30,8 +32,9 @@ class BagFacadeSpec extends TestSupportFixture with BagStoreFixture with Bagit5F
     bagFacade.getDoi(bagStoreBaseDir.resolve("00/000000000000000000000000000001/bag-revision-1/metadata/dataset.xml")) should matchPattern { case Success(`doi`) => }
   }
 
-  it should "fail if the dataset.xml file did not contain a DOI identifier" in {
+  it should "return empty string if the dataset.xml file did not contain a DOI identifier" in {
     val datasetXML = bagStoreBaseDir.resolve("00/000000000000000000000000000001/bag-revision-1/metadata/dataset.xml")
+    val modifiedXML = Paths.get(datasetXML.toString + "_modified")
 
     object RemoveDOI extends RewriteRule {
       override def transform(node: Node): Seq[Node] = node match {
@@ -42,8 +45,31 @@ class BagFacadeSpec extends TestSupportFixture with BagStoreFixture with Bagit5F
 
     new RuleTransformer(RemoveDOI)
       .transform(XML.loadFile(datasetXML.toFile))
-      .foreach(XML.save(datasetXML.toString, _))
+      .foreach(XML.save(modifiedXML.toString, _))
 
-    bagFacade.getDoi(datasetXML) should matchPattern { case Failure(NoDoiFoundException(`datasetXML`)) => }
+    bagFacade.getDoi(modifiedXML) should matchPattern { case Success("") => }
+  }
+
+  "getUrn" should "find the URN identifier in a metadata/dataset.xml file" in {
+    val urn = "urn:nbn:nl:ui:13-00-1haq"
+    bagFacade.getUrn(bagStoreBaseDir.resolve("00/000000000000000000000000000001/bag-revision-1/metadata/dataset.xml")) should matchPattern { case Success(`urn`) => }
+  }
+
+  it should "fail if the dataset.xml file did not contain a URN identifier" in {
+    val datasetXML = bagStoreBaseDir.resolve("00/000000000000000000000000000001/bag-revision-1/metadata/dataset.xml")
+    val modifiedXML = Paths.get(datasetXML.toString + "_modified")
+
+    object RemoveDOI extends RewriteRule {
+      override def transform(node: Node): Seq[Node] = node match {
+        case Elem(_, "identifier", _, _, _ @ _*) => NodeSeq.Empty
+        case n => n
+      }
+    }
+
+    new RuleTransformer(RemoveDOI)
+      .transform(XML.loadFile(datasetXML.toFile))
+      .foreach(XML.save(modifiedXML.toString, _))
+
+    bagFacade.getUrn(modifiedXML) should matchPattern { case Failure(NoIdentifierFoundException(_, `modifiedXML`)) => }
   }
 }

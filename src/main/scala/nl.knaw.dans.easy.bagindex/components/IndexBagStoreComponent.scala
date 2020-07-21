@@ -53,13 +53,14 @@ trait IndexBagStoreComponent extends DebugEnhancedLogging {
         _ = logger.debug("searching all bags for each bag-stores")
         bags <- bagStore.traverse
         // extract data from bag-info.txt
-        _ = logger.debug("extracting baseDir, created date and DOI from every bag")
+        _ = logger.debug("extracting baseDir, created date, DOI and URN from every bag")
         infos = bags.map {
           case (bagId, path) =>
-            (bagFacade.getIndexRelevantBagInfo(path).get, bagFacade.getDoi(bagStore.toDatasetXml(path, bagId)).get) match {
+            val datasetXml = bagStore.toDatasetXml(path, bagId)
+            (bagFacade.getIndexRelevantBagInfo(path).get, bagFacade.getDoi(datasetXml).get, bagFacade.getUrn(datasetXml).get) match {
               // TODO is there a better way to fail fast?
-              case ((Some(baseDir), Some(created)), doi) => BagInfo(bagId, baseDir, created, doi)
-              case ((None, Some(created)), doi) => BagInfo(bagId, bagId, created, doi)
+              case ((Some(baseDir), Some(created)), doi, urn) => BagInfo(bagId, baseDir, created, doi, urn)
+              case ((None, Some(created)), doi, urn) => BagInfo(bagId, bagId, created, doi, urn)
               case _ => throw new Exception(s"could not index bag $bagId")
             }
         }
@@ -71,7 +72,7 @@ trait IndexBagStoreComponent extends DebugEnhancedLogging {
           // - Richard: "Streams were not really designed to interact with Try, like we do with Seq/List/etc. This would however work with an Observable!"
           for (relation <- infos) {
             logger.debug(s"adding relation: $relation")
-            database.addBagInfo(relation.bagId, relation.baseId, relation.created, relation.doi).get
+            database.addBagInfo(relation.bagId, relation.baseId, relation.created, relation.doi, relation.urn).get
           }
         }
         // get all base bagIds

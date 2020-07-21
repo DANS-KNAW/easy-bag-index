@@ -18,7 +18,7 @@ package nl.knaw.dans.easy.bagindex.components
 import java.sql.Connection
 
 import nl.knaw.dans.easy.bagindex.access.{ BagFacadeComponent, BagStoreAccessComponent }
-import nl.knaw.dans.easy.bagindex.{ BagId, BaseId, Doi }
+import nl.knaw.dans.easy.bagindex.{ BagId, BaseId, Doi, Urn }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
 
@@ -58,9 +58,9 @@ trait IndexBagComponent extends DebugEnhancedLogging {
      * @param connection the connection to the database on which this action needs to be applied
      * @return `Success` if the bagId was added to the index; `Failure` otherwise
      */
-    def addBase(bagId: BagId, created: Option[DateTime] = None, doi: Doi)(implicit connection: Connection): Try[BaseId] = {
+    def addBase(bagId: BagId, created: Option[DateTime] = None, doi: Doi, urn: Urn)(implicit connection: Connection): Try[BaseId] = {
       trace(bagId, created)
-      database.addBagInfo(bagId, bagId, created.getOrElse(DateTime.now()), doi).map(_ => bagId)
+      database.addBagInfo(bagId, bagId, created.getOrElse(DateTime.now()), doi, urn).map(_ => bagId)
     }
 
     /**
@@ -75,11 +75,11 @@ trait IndexBagComponent extends DebugEnhancedLogging {
      * @param connection the connection to the database on which this action needs to be applied
      * @return the baseId of the super-base if the bagId was added to the index; `Failure` otherwise
      */
-    def add(bagId: BagId, baseId: BaseId, created: Option[DateTime] = None, doi: Doi)(implicit connection: Connection): Try[BaseId] = {
+    def add(bagId: BagId, baseId: BaseId, created: Option[DateTime] = None, doi: Doi, urn: Urn)(implicit connection: Connection): Try[BaseId] = {
       trace(bagId, baseId, created)
       for {
         superBase <- database.getBaseBagId(baseId)
-        _ <- database.addBagInfo(bagId, superBase, created.getOrElse(DateTime.now()), doi)
+        _ <- database.addBagInfo(bagId, superBase, created.getOrElse(DateTime.now()), doi, urn)
       } yield superBase
     }
 
@@ -100,7 +100,8 @@ trait IndexBagComponent extends DebugEnhancedLogging {
         (baseId, created) <- bagFacade.getIndexRelevantBagInfo(bagDir)
         datasetXMLPath = bagStore.toDatasetXml(bagDir, bagId)
         doi <- bagFacade.getDoi(datasetXMLPath)
-        superBaseId <- baseId.map(add(bagId, _, created, doi)).getOrElse(addBase(bagId, created, doi))
+        urn <- bagFacade.getUrn(datasetXMLPath)
+        superBaseId <- baseId.map(add(bagId, _, created, doi, urn)).getOrElse(addBase(bagId, created, doi, urn))
       } yield superBaseId
     }
   }

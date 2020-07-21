@@ -33,4 +33,6 @@ trait TestSupportFixture extends AnyFlatSpec with Matchers with Inside {
 
   lazy val testDoi: Doi = "10.5072/dans-x6f-kf66"
   lazy val testDois = List("10.5072/dans-x6f-kf6x", "10.5072/dans-x6f-kf66", "10.5072/dans-y7g-lg77")
+  lazy val testUrn: Urn = "urn:nbn:nl:ui:13-00-1haq"
+  lazy val testUrns = List("urn:nbn:nl:ui:13-00-1haq", "urn:nbn:nl:ui:13-00-2haq", "urn:nbn:nl:ui:13-00-3haq")
 }

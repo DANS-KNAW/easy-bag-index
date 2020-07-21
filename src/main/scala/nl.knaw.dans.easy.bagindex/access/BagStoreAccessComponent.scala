@@ -149,7 +149,7 @@ trait BagStoreAccessComponent extends DebugEnhancedLogging {
                 bagId <- formatUuidStrCanonically(path.toString.filterNot(_ == '/')).toUUID.toTry
                 bag <- findBag(baseDir.resolve(path))
               } yield (bagId, bag)
-              }.unsafeGetOrThrow)
+            }.unsafeGetOrThrow)
         }
 
         for {

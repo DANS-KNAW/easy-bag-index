@@ -16,7 +16,6 @@
 package nl.knaw.dans.easy.bagindex.server
 
 import javax.servlet.ServletContext
-
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.ServletContextHandler

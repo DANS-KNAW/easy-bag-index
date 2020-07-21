@@ -31,7 +31,7 @@ package object bagindex {
   case class BagReaderException(bagDir: Path, cause: Throwable) extends Exception(s"The bag at '$bagDir' could not be read: ${ cause.getMessage }", cause)
   case class BagNotFoundException(bagId: BagId) extends Exception(s"The bag with id '$bagId' could not be found")
   case class InvalidIsVersionOfException(bagDir: Path, value: String) extends Exception(s"Bag at '$bagDir' has an unsupported value in the bag-info.txt for field Is-Version-Of: $value")
-  case class NoDoiFoundException(datasetXML: Path) extends Exception(s"The metadata/dataset.xml at '$datasetXML' does not contain a DOI identifier")
+  case class NoIdentifierFoundException(identifierType: String, datasetXML: Path) extends Exception(s"The metadata/dataset.xml at '$datasetXML' does not contain ${ identifierType.toUpperCase } identifier")
   case class BagAlreadyInIndexException(bagId: BagId) extends Exception(s"Bag '$bagId' is already in the index")
 
   val CONTEXT_ATTRIBUTE_KEY_BAGINDEX_APP = "nl.knaw.dans.easy.bagindex.BagIndexApp"
@@ -40,9 +40,11 @@ package object bagindex {
   type BagId = UUID
   type BaseId = UUID
   type Doi = String
+  type Urn = String
+  type Identifier = String
 
   // TODO: rename to BagIndexRecord (or something, but BagInfo is easily confused with bag-info.txt)
-  case class BagInfo(bagId: BagId, baseId: BaseId, created: DateTime, doi: Doi)
+  case class BagInfo(bagId: BagId, baseId: BaseId, created: DateTime, doi: Doi, urn: Urn)
 
   /**
    * Conversions between Scala Option and Java 8 Optional.

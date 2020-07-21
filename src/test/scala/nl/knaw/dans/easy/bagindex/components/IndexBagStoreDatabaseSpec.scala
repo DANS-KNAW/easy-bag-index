@@ -70,18 +70,30 @@ class IndexBagStoreDatabaseSpec extends TestSupportFixture
     val doiY = "10.5072/dans-y6f-kf66"
     val doiZ = "10.5072/dans-z6f-kf66"
 
-    val relations = BagInfo(bagIdA, bagIdE, dateA, doiA) ::
-      BagInfo(bagIdB, bagIdA, dateB, doiB) ::
-      BagInfo(bagIdC, bagIdA, dateC, doiC) ::
-      BagInfo(bagIdD, bagIdB, dateD, doiD) ::
-      BagInfo(bagIdE, bagIdF, dateE, doiE) ::
-      BagInfo(bagIdF, bagIdF, dateF, doiF) ::
-      BagInfo(bagIdG, bagIdC, dateG, doiG) ::
-      BagInfo(bagIdX, bagIdY, dateX, doiX) ::
-      BagInfo(bagIdY, bagIdZ, dateY, doiY) ::
-      BagInfo(bagIdZ, bagIdZ, dateZ, doiZ) :: Nil
+    // urns
+    val urnA = "urn:nbn:nl:ui:13-00-A"
+    val urnB = "urn:nbn:nl:ui:13-00-B"
+    val urnC = "urn:nbn:nl:ui:13-00-C"
+    val urnD = "urn:nbn:nl:ui:13-00-D"
+    val urnE = "urn:nbn:nl:ui:13-00-E"
+    val urnF = "urn:nbn:nl:ui:13-00-F"
+    val urnG = "urn:nbn:nl:ui:13-00-G"
+    val urnX = "urn:nbn:nl:ui:13-00-X"
+    val urnY = "urn:nbn:nl:ui:13-00-Y"
+    val urnZ = "urn:nbn:nl:ui:13-00-Z"
 
-    relations.map(info => database.addBagInfo(info.bagId, info.baseId, info.created, info.doi)).collectResults shouldBe a[Success[_]]
+    val relations = BagInfo(bagIdA, bagIdE, dateA, doiA, urnA) ::
+      BagInfo(bagIdB, bagIdA, dateB, doiB, urnB) ::
+      BagInfo(bagIdC, bagIdA, dateC, doiC, urnC) ::
+      BagInfo(bagIdD, bagIdB, dateD, doiD, urnD) ::
+      BagInfo(bagIdE, bagIdF, dateE, doiE, urnE) ::
+      BagInfo(bagIdF, bagIdF, dateF, doiF, urnF) ::
+      BagInfo(bagIdG, bagIdC, dateG, doiG, urnG) ::
+      BagInfo(bagIdX, bagIdY, dateX, doiX, urnX) ::
+      BagInfo(bagIdY, bagIdZ, dateY, doiY, urnY) ::
+      BagInfo(bagIdZ, bagIdZ, dateZ, doiZ, urnZ) :: Nil
+
+    relations.map(info => database.addBagInfo(info.bagId, info.baseId, info.created, info.doi, info.urn)).collectResults shouldBe a[Success[_]]
 
     Map(
       'a' -> (bagIdA, dateA),
