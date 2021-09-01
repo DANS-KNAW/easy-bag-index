@@ -6,14 +6,13 @@
 #
 
 DARK_HOST=$1
-BAGSTORE=$2
-DOI_PREFIX=$3
-FROM=$4
-TO=$5
-BCC=$6
+DOI_PREFIX=$2
+FROM=$3
+TO=$4
+BCC=$5
 TMPDIR=/tmp
 DATE=$(date +%Y-%m-%d)
-REPORT=$TMPDIR/$BAGSTORE-doi-report-$DATE.csv
+REPORT=$TMPDIR/$DOI_PREFIX-doi-report-$DATE.csv
 MINDEPTH=3
 MAXDEPTH=5
 
@@ -44,8 +43,8 @@ exit_if_failed() {
     echo "OK"
 }
 
-echo -n "Creating list of DOIs in bag-store $BAGSTORE..."
-sudo -u postgres psql -U postgres easy_bag_index -c "\copy (select doi from bag_info where doi like '$DOI_PREFIX/%') to $REPORT"
+echo -n "Creating list of DOIs with prefix $DOI_PREFIX..."
+psql -U easy_bag_index easy_bag_index -c "\copy (select doi from bag_info where doi like '$DOI_PREFIX/%') to $REPORT"
 exit_if_failed "DOI list creation failed"
 
 echo -n "Compressing report..."
@@ -53,5 +52,5 @@ zip ${REPORT}.zip $REPORT
 
 echo -n "Sending e-mail..."
 echo
-echo -e "List of DOIs in bag-store $BAGSTORE in attached file." | mail -s "$DARK_HOST Report: status of bag-store: $BAGSTORE" -a ${REPORT}.zip $BCC_EMAILS $FROM_EMAIL $TO_EMAILS
+echo -e "List of archived DOIs with prefix $DOI_DOI_PREFIX in attached file." | mail -s "$DARK_HOST DOI report for prefix $DOI_PREFIX" -a ${REPORT}.zip $BCC_EMAILS $FROM_EMAIL $TO_EMAILS
 exit_if_failed "sending of e-mail failed"
