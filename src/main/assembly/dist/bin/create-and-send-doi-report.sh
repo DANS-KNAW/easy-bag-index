@@ -36,7 +36,7 @@ exit_if_failed() {
     if [ $EXITSTATUS != 0 ]; then
         echo "ERROR: $1, exit status = $EXITSTATUS"
         echo "Report generation FAILED. Contact the system administrator." |
-        mail -s "FAILED: Report: DOIs of datasets archived in bag-store $BAGSTORE" \
+        mail -s "FAILED: Report: List of archived DOIs with prefix $DOI_PREFIX" \
              $FROM_EMAIL $BCC_EMAILS $TO
         exit 1
     fi
@@ -52,5 +52,5 @@ zip ${REPORT}.zip $REPORT
 
 echo -n "Sending e-mail..."
 echo
-echo -e "List of archived DOIs with prefix $DOI_DOI_PREFIX in attached file." | mail -s "$DARK_HOST DOI report for prefix $DOI_PREFIX" -a ${REPORT}.zip $BCC_EMAILS $FROM_EMAIL $TO_EMAILS
+echo -e "List of archived DOIs with prefix $DOI_PREFIX in attached file." | mail -s "$DARK_HOST DOI report for prefix $DOI_PREFIX" -a ${REPORT}.zip $BCC_EMAILS $FROM_EMAIL $TO_EMAILS
 exit_if_failed "sending of e-mail failed"
