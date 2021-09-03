@@ -1,6 +1,7 @@
 easy-bag-index
 ==============
-[![Build Status](https://travis-ci.org/DANS-KNAW/easy-bag-index.png?branch=master)](https://travis-ci.org/DANS-KNAW/easy-bag-index)
+![Build Status](https://github.com/DANS-KNAW/easy-bag-index/actions/workflows/build.yml/badge.svg)
+![Site Status](https://github.com/DANS-KNAW/easy-bag-index/actions/workflows/docs.yml/badge.svg)
 
 Index a bag store
 
