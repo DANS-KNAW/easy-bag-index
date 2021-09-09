@@ -66,7 +66,11 @@ trait DatabaseComponent extends DebugEnhancedLogging {
         created = DateTime.parse(result.getString("created").trim, dateTimeFormatter),
         doi = result.getString("doi").trim,
         urn = result.getString("urn").trim,
-        otherId = new OtherId(Option(result.getString("otherId").trim), Option(result.getString("otherIdVersion").trim))) // TODO null?
+        otherId = new OtherId(
+          Option(result.getString("otherId")).map(_.trim),
+          Option(result.getString("otherIdVersion")).map(_.trim)
+        )
+      )
     }
 
     private def getBagId(result: ResultSet): BagId = {
