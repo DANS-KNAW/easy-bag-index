@@ -18,6 +18,7 @@ package nl.knaw.dans.easy
 import java.nio.file.Path
 import java.util.{ Optional, UUID }
 
+import nl.knaw.dans.easy.bagindex.components.OtherId
 import org.joda.time.DateTime
 import org.joda.time.format.{ DateTimeFormatter, ISODateTimeFormat }
 
@@ -44,7 +45,7 @@ package object bagindex {
   type Identifier = String
 
   // TODO: rename to BagIndexRecord (or something, but BagInfo is easily confused with bag-info.txt)
-  case class BagInfo(bagId: BagId, baseId: BaseId, created: DateTime, doi: Doi, urn: Urn)
+  case class BagInfo(bagId: BagId, baseId: BaseId, created: DateTime, doi: Doi, urn: Urn, otherId: OtherId)
 
   /**
    * Conversions between Scala Option and Java 8 Optional.

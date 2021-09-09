@@ -75,11 +75,11 @@ trait IndexBagComponent extends DebugEnhancedLogging {
      * @param connection the connection to the database on which this action needs to be applied
      * @return the baseId of the super-base if the bagId was added to the index; `Failure` otherwise
      */
-    def add(bagId: BagId, baseId: BaseId, created: Option[DateTime] = None, doi: Doi, urn: Urn)(implicit connection: Connection): Try[BaseId] = {
+    def add(bagId: BagId, baseId: BaseId, created: Option[DateTime] = None, doi: Doi, urn: Urn, otherId: OtherId)(implicit connection: Connection): Try[BaseId] = {
       trace(bagId, baseId, created)
       for {
         superBase <- database.getBaseBagId(baseId)
-        _ <- database.addBagInfo(bagId, superBase, created.getOrElse(DateTime.now()), doi, urn)
+        _ <- database.addBagInfo(bagId, superBase, created.getOrElse(DateTime.now()), doi, urn, otherId)
       } yield superBase
     }
 

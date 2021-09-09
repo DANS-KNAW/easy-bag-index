@@ -51,6 +51,10 @@ trait BagIndexServletComponent {
         <created>{bagInfo.created.toString(dateTimeFormatter)}</created>
         <doi>{bagInfo.doi}</doi>
         <urn>{bagInfo.urn}</urn>
+        <otherid>
+          <id>{bagInfo.otherId.id}</id>
+          <version>{bagInfo.otherId.version}</version>
+        </otherid>
       </bag-info>
     }
 
@@ -60,7 +64,9 @@ trait BagIndexServletComponent {
           ("base-id" -> bagInfo.baseId.toString) ~
           ("created" -> bagInfo.created.toString(dateTimeFormatter)) ~
           ("doi" -> bagInfo.doi) ~
-          ("urn" -> bagInfo.urn)
+          ("urn" -> bagInfo.urn) ~
+          ("otherId" -> bagInfo.otherId.id) ~
+          ("otherIdVersion" -> bagInfo.otherId.version)
       }
     }
 

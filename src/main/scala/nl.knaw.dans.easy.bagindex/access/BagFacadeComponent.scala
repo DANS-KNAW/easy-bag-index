@@ -25,6 +25,7 @@ import gov.loc.repository.bagit.domain.Bag
 import gov.loc.repository.bagit.exceptions._
 import gov.loc.repository.bagit.reader.BagReader
 import nl.knaw.dans.easy.bagindex._
+import nl.knaw.dans.easy.bagindex.components.OtherId
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import nl.knaw.dans.lib.string._
 import org.joda.time.DateTime
@@ -41,6 +42,8 @@ trait BagFacadeComponent extends DebugEnhancedLogging {
 
   val IS_VERSION_OF = "Is-Version-Of"
   val CREATED = "Created"
+  val HAS_ORGANIZATIONAL_ID = "Has-Organizational-Identifier"
+  val HAS_ORGANIZATIONAL_ID_VERSION = "Has-Organizational-Identifier-Version"
 
   trait BagFacade {
     def getIndexRelevantBagInfo(bagDir: Path): Try[(Option[BaseId], Option[DateTime])] = {
@@ -51,9 +54,11 @@ trait BagFacadeComponent extends DebugEnhancedLogging {
           .map(ivo => Try(new URI(ivo)).flatMap(getIsVersionOfFromUri(bagDir)).map(Option(_)))
           .getOrElse(Success(None))
         created = info.get(CREATED).map(DateTime.parse(_, dateTimeFormatter))
+        otherId = info.get(HAS_ORGANIZATIONAL_ID)
+        otherIdVersion = info.get(HAS_ORGANIZATIONAL_ID_VERSION)
         _ = debug(s"found baseId for $bagDir: $baseId")
         _ = debug(s"  corresponding CREATED date: ${ created.fold("None")(_.toString(dateTimeFormatter)) }")
-      } yield (baseId, created)
+      } yield (baseId, created, new OtherId(otherId, otherIdVersion))
     }
 
     // TODO: canditate for easy-bagit-lib
