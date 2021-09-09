@@ -46,7 +46,7 @@ trait BagFacadeComponent extends DebugEnhancedLogging {
   val HAS_ORGANIZATIONAL_ID_VERSION = "Has-Organizational-Identifier-Version"
 
   trait BagFacade {
-    def getIndexRelevantBagInfo(bagDir: Path): Try[(Option[BaseId], Option[DateTime])] = {
+    def getIndexRelevantBagInfo(bagDir: Path): Try[(Option[BaseId], Option[DateTime], OtherId)] = {
       trace(bagDir)
       for {
         info <- getBagInfo(bagDir)

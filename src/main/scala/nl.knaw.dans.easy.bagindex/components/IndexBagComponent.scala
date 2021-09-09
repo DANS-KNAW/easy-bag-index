@@ -97,11 +97,11 @@ trait IndexBagComponent extends DebugEnhancedLogging {
       logger.info(s"add bag $bagId from the bag-store to the index")
       for {
         bagDir <- bagStore.toLocation(bagId)
-        (baseId, created) <- bagFacade.getIndexRelevantBagInfo(bagDir)
+        (baseId, created, otherId) <- bagFacade.getIndexRelevantBagInfo(bagDir)
         datasetXMLPath = bagStore.toDatasetXml(bagDir, bagId)
         doi <- bagFacade.getDoi(datasetXMLPath)
         urn <- bagFacade.getUrn(datasetXMLPath)
-        superBaseId <- baseId.map(add(bagId, _, created, doi, urn)).getOrElse(addBase(bagId, created, doi, urn))
+        superBaseId <- baseId.map(add(bagId, _, created, doi, urn, otherId)).getOrElse(addBase(bagId, created, doi, urn))
       } yield superBaseId
     }
   }
