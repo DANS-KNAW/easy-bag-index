@@ -88,8 +88,8 @@ class IndexBagStoreDatabaseSpec extends TestSupportFixture
       BagInfo(bagIdC, bagIdA, dateC, doiC, urnC, noOtherId) ::
       BagInfo(bagIdD, bagIdB, dateD, doiD, urnD, noOtherId) ::
       BagInfo(bagIdE, bagIdF, dateE, doiE, urnE, noOtherId) ::
-      BagInfo(bagIdF, bagIdF, dateF, doiF, urnF, noOtherId) ::
       BagInfo(bagIdG, bagIdC, dateG, doiG, urnG, noOtherId) ::
+      BagInfo(bagIdF, bagIdF, dateF, doiF, urnF, noOtherId) ::
       BagInfo(bagIdX, bagIdY, dateX, doiX, urnX, noOtherId) ::
       BagInfo(bagIdY, bagIdZ, dateY, doiY, urnY, noOtherId) ::
       BagInfo(bagIdZ, bagIdZ, dateZ, doiZ, urnZ, noOtherId) :: Nil

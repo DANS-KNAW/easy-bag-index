@@ -25,7 +25,7 @@ import resource._
 
 import scala.collection.immutable.Seq
 import scala.util.{ Failure, Try }
-
+import nl.knaw.dans.lib.string._
 trait DatabaseComponent extends DebugEnhancedLogging {
 
   val database: Database
@@ -60,6 +60,10 @@ trait DatabaseComponent extends DebugEnhancedLogging {
 
   trait Database {
     private def getBagInfo(result: ResultSet): BagInfo = {
+      def extractOption(otherId: String) = {
+        result.getString(otherId).toOption.map(_.trim)
+      }
+
       BagInfo(
         bagId = UUID.fromString(result.getString("bagId").trim),
         baseId = UUID.fromString(result.getString("base").trim),
@@ -67,8 +71,8 @@ trait DatabaseComponent extends DebugEnhancedLogging {
         doi = result.getString("doi").trim,
         urn = result.getString("urn").trim,
         otherId = new OtherId(
-          Option(result.getString("otherId")).map(_.trim),
-          Option(result.getString("otherIdVersion")).map(_.trim)
+          extractOption("otherId"),
+          extractOption("otherIdVersion")
         )
       )
     }
