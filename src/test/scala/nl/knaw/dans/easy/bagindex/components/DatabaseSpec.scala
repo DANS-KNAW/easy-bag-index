@@ -138,7 +138,7 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
       .collectResults shouldBe a[Success[_]]
 
     inside(database.getBagsWithIdentifier(doi1, "doi")) {
-      case Success(bags) => bags should (have size 2 and contain only(BagInfo(bagId1, bagId1, time1, doi1, urn, noOtherId), BagInfo(bagId2, bagId2, time2, doi1, urn, noOtherId)))
+      case Success(bags) => bags.map(_.toString) should (have size 2 and contain only(BagInfo(bagId1, bagId1, time1, doi1, urn, noOtherId).toString, BagInfo(bagId2, bagId2, time2, doi1, urn, noOtherId).toString))
     }
   }
 
@@ -155,7 +155,7 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
       .collectResults shouldBe a[Success[_]]
 
     inside(database.getBagsWithIdentifier(urn1, "urn")) {
-      case Success(bags) => bags should (have size 2 and contain only(BagInfo(bagId1, bagId1, time1, "", urn1, noOtherId), BagInfo(bagId2, bagId2, time2, "", urn1, noOtherId)))
+      case Success(bags) => bags.map(_.toString) should (have size 2 and contain only(BagInfo(bagId1, bagId1, time1, "", urn1, noOtherId).toString, BagInfo(bagId2, bagId2, time2, "", urn1, noOtherId).toString))
     }
   }
 
@@ -168,7 +168,7 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
     database.addBagInfo(bagId, bagId, time, doi, urn, noOtherId) shouldBe a[Success[_]]
 
     inside(database.getBagsWithIdentifier(doi, "doi")) {
-      case Success(bags) => bags should (have size 1 and contain only BagInfo(bagId, bagId, time, doi, urn, noOtherId))
+      case Success(bags) => bags.map(_.toString) should (have size 1 and contain only BagInfo(bagId, bagId, time, doi, urn, noOtherId).toString)
     }
   }
 
@@ -180,7 +180,7 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
     database.addBagInfo(bagId, bagId, time, "", urn, noOtherId) shouldBe a[Success[_]]
 
     inside(database.getBagsWithIdentifier(urn, "urn")) {
-      case Success(bags) => bags should (have size 1 and contain only BagInfo(bagId, bagId, time, "", urn, noOtherId))
+      case Success(bags) => bags.map(_.toString) should (have size 1 and contain only BagInfo(bagId, bagId, time, "", urn, noOtherId).toString)
     }
   }
 
