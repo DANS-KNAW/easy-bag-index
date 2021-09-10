@@ -24,11 +24,11 @@ import scala.util.{ Failure, Success }
 
 class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with DatabaseComponent {
 
-  override val database = new Database {}
+  override val database: Database = new Database {}
   private val noOtherId: OtherId = new OtherId(None, None)
 
   "getBaseBagId" should "return the base of a specific bagId" in {
-    val bagIds @ (baseId :: _) = List.fill(3)(UUID.randomUUID())
+    val bagIds @ baseId :: _ = List.fill(3)(UUID.randomUUID())
     val times = List(
       DateTime.parse("1992-07-30T16:00:00"),
       DateTime.parse("2004-01-01"),
@@ -66,7 +66,7 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
   }
 
   it should "return a sequence with all bagIds with a certain baseId" in {
-    val bagIds1 @ (baseId1 :: _) = List.fill(3)(UUID.randomUUID())
+    val bagIds1 @ baseId1 :: _ = List.fill(3)(UUID.randomUUID())
     val times1 = List(
       DateTime.parse("1992-07-30T16:00:00"),
       DateTime.parse("2004-01-01"),
@@ -74,7 +74,7 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
     )
     val urns1 = List("urn:nbn:nl:ui:13-00-1haq", "urn:nbn:nl:ui:13-00-2haq", "urn:nbn:nl:ui:13-00-3haq")
 
-    val bagIds2 @ (baseId2 :: _) = List.fill(5)(UUID.randomUUID())
+    val bagIds2 @ baseId2 :: _ = List.fill(5)(UUID.randomUUID())
     val times2 = List(
       DateTime.parse("2001-09-11"),
       DateTime.parse("2017"),
@@ -99,7 +99,7 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
   }
 
   "getBagInfo" should "return the relation object for the given bagId" in {
-    val bagIds @ (baseId :: _) = List.fill(3)(UUID.randomUUID())
+    val bagIds @ baseId :: _ = List.fill(3)(UUID.randomUUID())
     val times = List(
       DateTime.parse("1992-07-30T16:00:00"),
       DateTime.parse("2004-01-01"),
@@ -114,7 +114,7 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
 
     (bagIds zip times zip dois zip urns)
       .foreach { case (((bagId, created), doi), urn) => database.getBagInfo(bagId) should
-        matchPattern { case Success(BagInfo(`bagId`, `baseId`, `created`, `doi`, `urn`, noOtherId)) => }
+        matchPattern { case Success(BagInfo(`bagId`, `baseId`, `created`, `doi`, `urn`, `noOtherId`)) => }
       }
   }
 
@@ -197,7 +197,7 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
   }
 
   "addBagInfo" should "insert a new bag relation into the database" in {
-    val bagIds @ (baseId :: _) = List.fill(3)(UUID.randomUUID())
+    val bagIds @ baseId :: _ = List.fill(3)(UUID.randomUUID())
     val times = List(
       DateTime.parse("1992-07-30T16:00:00"),
       DateTime.parse("2004-01-01"),
@@ -210,10 +210,12 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
       .map { case (((bagId, time), doi), urn) => database.addBagInfo(bagId, baseId, time, doi, urn, noOtherId) }
       .collectResults shouldBe a[Success[_]]
 
-    val rel1 :: rel2 :: rels = (bagIds zip times zip dois zip urns).map { case (((bagId, time), doi), urn) => BagInfo(bagId, baseId, time, doi, urn, noOtherId) }
+    val rel1 :: rel2 :: rels = (bagIds zip times zip dois zip urns)
+      .map { case (((bagId, time), doi), urn) => BagInfo(bagId, baseId, time, doi, urn, noOtherId).toString }
 
     inside(database.getAllBagInfos) {
-      case Success(relations) => relations should contain allOf(rel1, rel2, rels: _*)
+      case Success(relations) => relations.map(_.toString) should
+        contain allOf(rel1.toString, rel2.toString, rels: _*)
     }
   }
 
@@ -231,7 +233,8 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
     result2 should matchPattern { case Failure(BagAlreadyInIndexException(`bagId`)) => }
 
     inside(database.getAllBagInfos) {
-      case Success(relations) => relations should contain(BagInfo(bagId, baseId, time, doi, urn, noOtherId))
+      case Success(relations) => relations.map(_.toString) should
+        contain(BagInfo(bagId, baseId, time, doi, urn, noOtherId).toString)
     }
   }
 }

@@ -110,7 +110,11 @@ class BagIndexServletSpec extends TestSupportFixture
             <created>{created.toString(dateTimeFormatter)}</created>
             <doi>{doi}</doi>
             <urn>{urn}</urn>
-          </bag-info>
+            <otherid>
+              <id>None</id>
+              <version>None</version>
+            </otherid>
+        </bag-info>
         </result>
       }
     }
@@ -176,7 +180,11 @@ class BagIndexServletSpec extends TestSupportFixture
             <created>{created.toString(dateTimeFormatter)}</created>
             <doi>{doi}</doi>
             <urn>{urn}</urn>
-          </bag-info>
+            <otherid>
+              <id>None</id>
+              <version>None</version>
+            </otherid>
+        </bag-info>
         </result>
       }
     }
@@ -277,6 +285,10 @@ class BagIndexServletSpec extends TestSupportFixture
             <created>{created.toString(dateTimeFormatter)}</created>
             <doi>{doi}</doi>
             <urn>{urn}</urn>
+            <otherid>
+              <id>None</id>
+              <version>None</version>
+            </otherid>
           </bag-info>
         </result>
       }
