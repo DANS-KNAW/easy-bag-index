@@ -138,6 +138,14 @@ trait DatabaseComponent extends DebugEnhancedLogging {
       Query(s"SELECT bagId, base, created, doi, urn, otherId, otherIdVersion FROM bag_info WHERE $identifierType=?;")(_.setString(1, identifier)).selectMany(getBagInfo)
     }
 
+    def getBagsWithVersionedVersionedOtherId(id: Identifier, version: String)(implicit connection: Connection): Try[Seq[BagInfo]] = {
+      trace(id, version)
+      Query(s"SELECT bagId, base, created, doi, urn, otherId, otherIdVersion FROM bag_info WHERE otherId=? AND otherIdVersion=?;") { statement =>
+        statement.setString(1, id)
+        statement.setString(2, version)
+      }.selectMany(getBagInfo)
+    }
+
     /**
      * Returns a sequence of all bag relations that are present in the database.
      * '''Warning:''' this may load large amounts of data into memory.
@@ -189,10 +197,12 @@ trait DatabaseComponent extends DebugEnhancedLogging {
         }
     }
 
-    //TODO: how to set the second parameter in the prepared statement?
     def getAllBagsWithOtherIdVersion(otherId: String, otherIdVersion: String)(implicit connection: Connection): Try[Seq[BagInfo]] = {
       trace(otherId, otherIdVersion)
-      Query(s"SELECT bagId, base, created, doi, urn, otherId, otherIdVersion FROM bag_info WHERE otherId=? and otherIdVersion=?;")(_.setString(1, otherId)).selectMany(getBagInfo)
+      Query(s"SELECT bagId, base, created, doi, urn, otherId, otherIdVersion FROM bag_info WHERE otherId=? AND otherIdVersion=?;") { statement =>
+        statement.setString(1, otherId)
+        statement.setString(2, otherIdVersion)
+      }.selectMany(getBagInfo)
     }
   }
 }
