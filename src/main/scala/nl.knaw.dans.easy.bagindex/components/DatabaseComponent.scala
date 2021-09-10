@@ -15,9 +15,8 @@
  */
 package nl.knaw.dans.easy.bagindex.components
 
-import java.sql.{ Connection, PreparedStatement, ResultSet, SQLException }
+import java.sql.{ Connection, PreparedStatement, ResultSet, SQLException, Types }
 import java.util.UUID
-
 import nl.knaw.dans.easy.bagindex._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
@@ -170,8 +169,16 @@ trait DatabaseComponent extends DebugEnhancedLogging {
           prepStatement.setString(3, created.toString(dateTimeFormatter))
           prepStatement.setString(4, doi)
           prepStatement.setString(5, urn)
-          prepStatement.setString(6, otherId.id.getOrElse(""))
-          prepStatement.setString(7, otherId.version.getOrElse(""))
+          otherId.id.map(
+            prepStatement.setString(6,_)
+          ).getOrElse(
+            prepStatement.setNull(6,Types.VARCHAR)
+          )
+          otherId.version.map(
+            prepStatement.setString(7,_)
+          ).getOrElse(
+            prepStatement.setNull(7,Types.VARCHAR)
+          )
           prepStatement.executeUpdate()
         })
         .tried
