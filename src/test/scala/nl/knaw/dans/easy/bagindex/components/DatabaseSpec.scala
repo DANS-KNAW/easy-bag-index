@@ -114,7 +114,7 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
 
     (bagIds zip times zip dois zip urns)
       .foreach { case (((bagId, created), doi), urn) => database.getBagInfo(bagId) should
-        matchPattern { case Success(BagInfo(`bagId`, `baseId`, `created`, `doi`, `urn`, `noOtherId`)) => }
+        matchPattern { case Success(BagInfo(`bagId`, `baseId`, `created`, `doi`, `urn`, _)) => }
       }
   }
 
