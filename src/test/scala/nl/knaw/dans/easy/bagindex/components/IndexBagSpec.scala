@@ -36,12 +36,13 @@ class IndexBagSpec extends TestSupportFixture
 
   override val database: Database = new Database {}
   override val index: IndexBag = new IndexBag {}
+  private val noOtherId: OtherId = new OtherId(None, None)
 
   "getBagSequence" should "return a sequence with only the baseId when there are no child bags declared" in {
     val bagId = UUID.randomUUID()
     val time = DateTime.now()
 
-    database.addBagInfo(bagId, bagId, time, testDoi, testUrn) shouldBe a[Success[_]]
+    database.addBagInfo(bagId, bagId, time, testDoi, testUrn, noOtherId) shouldBe a[Success[_]]
 
     inside(index.getBagSequence(bagId)) {
       case Success(ids) => ids should (have size 1 and contain only bagId)
@@ -57,7 +58,7 @@ class IndexBagSpec extends TestSupportFixture
     )
 
     (bagIds zip times zip testDois zip testUrns)
-      .map { case (((bagId, time), doi), urn) => database.addBagInfo(bagId, baseId, time, doi, urn) }
+      .map { case (((bagId, time), doi), urn) => database.addBagInfo(bagId, baseId, time, doi, urn, noOtherId) }
       .collectResults shouldBe a[Success[_]]
 
     inside(index.getBagSequence(baseId)) {
@@ -74,7 +75,7 @@ class IndexBagSpec extends TestSupportFixture
     )
 
     (bagIds zip times zip testDois zip testUrns)
-      .map { case (((bagId, time), doi), urn) => database.addBagInfo(bagId, baseId, time, doi, urn) }
+      .map { case (((bagId, time), doi), urn) => database.addBagInfo(bagId, baseId, time, doi, urn, noOtherId) }
       .collectResults shouldBe a[Success[_]]
 
     for (bagId <- bagIds) {
@@ -93,10 +94,10 @@ class IndexBagSpec extends TestSupportFixture
   "add" should "put a relation from the bagId to itself in the database when no base is specified" in {
     val bagId = UUID.randomUUID()
 
-    index.addBase(bagId, doi = testDoi, urn = testUrn) should matchPattern { case Success(`bagId`) => }
+    index.addBase(bagId, doi = testDoi, urn = testUrn, otherId = noOtherId) should matchPattern { case Success(`bagId`) => }
 
     inside(database.getAllBagInfos) {
-      case Success(relations) => relations.map { case BagInfo(id, base, _, _, _) => (id, base) } should contain((bagId, bagId))
+      case Success(relations) => relations.map { case BagInfo(id, base, _, _, _, _) => (id, base) } should contain((bagId, bagId))
     }
   }
 
@@ -106,11 +107,11 @@ class IndexBagSpec extends TestSupportFixture
     val doi = testDoi.replaceAll("6", "7")
     val urn = testUrn.replaceAll("1", "2")
 
-    index.addBase(baseId, doi = testDoi, urn = testUrn) shouldBe a[Success[_]]
-    index.add(bagId, baseId, doi = doi, urn = urn) should matchPattern { case Success(`baseId`) => }
+    index.addBase(baseId, doi = testDoi, urn = testUrn, otherId = noOtherId) shouldBe a[Success[_]]
+    index.add(bagId, baseId, doi = doi, urn = urn, otherId = noOtherId) should matchPattern { case Success(`baseId`) => }
 
     inside(database.getAllBagInfos) {
-      case Success(relations) => relations.map { case BagInfo(id, base, _, _, _) => (id, base) } should contain((bagId, baseId))
+      case Success(relations) => relations.map { case BagInfo(id, base, _, _, _, _) => (id, base) } should contain((bagId, baseId))
     }
   }
 
@@ -121,12 +122,12 @@ class IndexBagSpec extends TestSupportFixture
     val doi = testDoi.replaceAll("6", "8")
     val urn = testUrn.replaceAll("1", "2")
 
-    index.addBase(superBaseId, doi = testDoi, urn = testUrn) shouldBe a[Success[_]]
-    index.add(baseId, superBaseId, doi = doi, urn = urn) shouldBe a[Success[_]]
-    index.add(bagId, baseId, doi = doi, urn = urn) should matchPattern { case Success(`superBaseId`) => }
+    index.addBase(superBaseId, doi = testDoi, urn = testUrn, otherId = noOtherId) shouldBe a[Success[_]]
+    index.add(baseId, superBaseId, doi = doi, urn = urn, otherId = noOtherId) shouldBe a[Success[_]]
+    index.add(bagId, baseId, doi = doi, urn = urn, otherId = noOtherId) should matchPattern { case Success(`superBaseId`) => }
 
     inside(database.getAllBagInfos) {
-      case Success(relations) => relations.map { case BagInfo(id, base, _, _, _) => (id, base) } should contain((bagId, superBaseId))
+      case Success(relations) => relations.map { case BagInfo(id, base, _, _, _, _) => (id, base) } should contain((bagId, superBaseId))
     }
   }
 
@@ -139,7 +140,7 @@ class IndexBagSpec extends TestSupportFixture
       case Success(relations) => relations.map(_.bagId) should not contain baseId
     }
 
-    index.add(bagId, baseId, doi = testDoi, urn = testUrn) should matchPattern { case Failure(BagIdNotFoundException(`baseId`)) => }
+    index.add(bagId, baseId, doi = testDoi, urn = testUrn, otherId = noOtherId) should matchPattern { case Failure(BagIdNotFoundException(`baseId`)) => }
   }
 
   private def assertBagInfoNotInDatabase(bagId: BagId): Unit = {
@@ -148,7 +149,7 @@ class IndexBagSpec extends TestSupportFixture
 
   private def assertBagInfoInDatabase(relation: BagInfo): Unit = {
     inside(database.getBagInfo(relation.bagId)) {
-      case Success(BagInfo(id, base, created, doi, urn)) =>
+      case Success(BagInfo(id, base, created, doi, urn, otherId)) =>
         id shouldBe relation.bagId
         base shouldBe relation.baseId
         created.toString(dateTimeFormatter) shouldBe relation.created.toString(dateTimeFormatter)
@@ -169,7 +170,7 @@ class IndexBagSpec extends TestSupportFixture
 
     assertAdditionReturnedExpectedBaseId(bagId, bagId)
 
-    assertBagInfoInDatabase(BagInfo(bagId, bagId, DateTime.parse("2017-01-16T14:35:00.888+01:00", ISODateTimeFormat.dateTime()), doiMap(bagId), urnMap(bagId)))
+    assertBagInfoInDatabase(BagInfo(bagId, bagId, DateTime.parse("2017-01-16T14:35:00.888+01:00", ISODateTimeFormat.dateTime()), doiMap(bagId), urnMap(bagId), noOtherId))
   }
 
   // add revision with direct base
@@ -183,8 +184,8 @@ class IndexBagSpec extends TestSupportFixture
     assertAdditionReturnedExpectedBaseId(baseId, baseId)
     assertAdditionReturnedExpectedBaseId(bagId, baseId)
 
-    assertBagInfoInDatabase(BagInfo(baseId, baseId, DateTime.parse("2017-01-16T14:35:00.888+01:00", ISODateTimeFormat.dateTime()), doiMap(baseId), urnMap(baseId)))
-    assertBagInfoInDatabase(BagInfo(bagId, baseId, DateTime.parse("2017-01-17T14:35:00.888+01:00", ISODateTimeFormat.dateTime()), doiMap(bagId), urnMap(bagId)))
+    assertBagInfoInDatabase(BagInfo(baseId, baseId, DateTime.parse("2017-01-16T14:35:00.888+01:00", ISODateTimeFormat.dateTime()), doiMap(baseId), urnMap(baseId), noOtherId))
+    assertBagInfoInDatabase(BagInfo(bagId, baseId, DateTime.parse("2017-01-17T14:35:00.888+01:00", ISODateTimeFormat.dateTime()), doiMap(bagId), urnMap(bagId), noOtherId))
   }
 
   // add revision with indirect base
@@ -201,9 +202,9 @@ class IndexBagSpec extends TestSupportFixture
     assertAdditionReturnedExpectedBaseId(baseId, superBaseId)
     assertAdditionReturnedExpectedBaseId(bagId, superBaseId)
 
-    assertBagInfoInDatabase(BagInfo(superBaseId, superBaseId, DateTime.parse("2017-01-16T14:35:00.888+01:00", ISODateTimeFormat.dateTime()), doiMap(superBaseId), urnMap(superBaseId)))
-    assertBagInfoInDatabase(BagInfo(baseId, superBaseId, DateTime.parse("2017-01-17T14:35:00.888+01:00", ISODateTimeFormat.dateTime()), doiMap(baseId), urnMap(baseId)))
-    assertBagInfoInDatabase(BagInfo(bagId, superBaseId, DateTime.parse("2017-01-18T14:35:00.888+01:00", ISODateTimeFormat.dateTime()), doiMap(bagId), urnMap(bagId)))
+    assertBagInfoInDatabase(BagInfo(superBaseId, superBaseId, DateTime.parse("2017-01-16T14:35:00.888+01:00", ISODateTimeFormat.dateTime()), doiMap(superBaseId), urnMap(superBaseId), noOtherId))
+    assertBagInfoInDatabase(BagInfo(baseId, superBaseId, DateTime.parse("2017-01-17T14:35:00.888+01:00", ISODateTimeFormat.dateTime()), doiMap(baseId), urnMap(baseId), noOtherId))
+    assertBagInfoInDatabase(BagInfo(bagId, superBaseId, DateTime.parse("2017-01-18T14:35:00.888+01:00", ISODateTimeFormat.dateTime()), doiMap(bagId), urnMap(bagId), noOtherId))
   }
 
   // add with invalid bagId

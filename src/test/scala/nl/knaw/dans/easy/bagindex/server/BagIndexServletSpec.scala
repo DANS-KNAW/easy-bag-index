@@ -342,7 +342,7 @@ class BagIndexServletSpec extends TestSupportFixture
     put(s"/bags/$uuid2") {
       status shouldBe 201
       body shouldBe empty
-      database.getBagInfo(uuid2) should matchPattern { case Success(BagInfo(`uuid2`, `uuid1`, _, _, _)) => }
+      database.getBagInfo(uuid2) should matchPattern { case Success(BagInfo(`uuid2`, `uuid1`, _, _, _, _)) => }
     }
   }
 
@@ -353,7 +353,7 @@ class BagIndexServletSpec extends TestSupportFixture
     put(s"/bags/$uuid1") {
       status shouldBe 400
       body shouldBe s"Bag '$uuid1' is already in the index"
-      database.getBagInfo(uuid1) should matchPattern { case Success(BagInfo(`uuid1`, `uuid1`, _, _, _)) => }
+      database.getBagInfo(uuid1) should matchPattern { case Success(BagInfo(`uuid1`, `uuid1`, _, _, _, _)) => }
     }
   }
 

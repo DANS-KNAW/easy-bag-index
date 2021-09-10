@@ -58,9 +58,9 @@ trait IndexBagComponent extends DebugEnhancedLogging {
      * @param connection the connection to the database on which this action needs to be applied
      * @return `Success` if the bagId was added to the index; `Failure` otherwise
      */
-    def addBase(bagId: BagId, created: Option[DateTime] = None, doi: Doi, urn: Urn)(implicit connection: Connection): Try[BaseId] = {
+    def addBase(bagId: BagId, created: Option[DateTime] = None, doi: Doi, urn: Urn, otherId: OtherId)(implicit connection: Connection): Try[BaseId] = {
       trace(bagId, created)
-      database.addBagInfo(bagId, bagId, created.getOrElse(DateTime.now()), doi, urn).map(_ => bagId)
+      database.addBagInfo(bagId, bagId, created.getOrElse(DateTime.now()), doi, urn, otherId).map(_ => bagId)
     }
 
     /**
@@ -101,7 +101,9 @@ trait IndexBagComponent extends DebugEnhancedLogging {
         datasetXMLPath = bagStore.toDatasetXml(bagDir, bagId)
         doi <- bagFacade.getDoi(datasetXMLPath)
         urn <- bagFacade.getUrn(datasetXMLPath)
-        superBaseId <- baseId.map(add(bagId, _, created, doi, urn, otherId)).getOrElse(addBase(bagId, created, doi, urn))
+        superBaseId <- baseId
+          .map(add(bagId, _, created, doi, urn, otherId))
+          .getOrElse(addBase(bagId, created, doi, urn, otherId))
       } yield superBaseId
     }
   }
