@@ -44,7 +44,7 @@ class BagIndexServletSpec extends TestSupportFixture
 
   override val database: Database = new Database {}
   override val index: IndexBag = new IndexBag {}
-  override val bagIndexServlet = new BagIndexServlet {
+  override val bagIndexServlet: BagIndexServlet = new BagIndexServlet {
     override val version: String = testVersion
   }
 
@@ -110,10 +110,6 @@ class BagIndexServletSpec extends TestSupportFixture
             <created>{created.toString(dateTimeFormatter)}</created>
             <doi>{doi}</doi>
             <urn>{urn}</urn>
-            <otherid>
-              <id>None</id>
-              <version>None</version>
-            </otherid>
         </bag-info>
         </result>
       }
@@ -180,10 +176,6 @@ class BagIndexServletSpec extends TestSupportFixture
             <created>{created.toString(dateTimeFormatter)}</created>
             <doi>{doi}</doi>
             <urn>{urn}</urn>
-            <otherid>
-              <id>None</id>
-              <version>None</version>
-            </otherid>
         </bag-info>
         </result>
       }
@@ -285,10 +277,6 @@ class BagIndexServletSpec extends TestSupportFixture
             <created>{created.toString(dateTimeFormatter)}</created>
             <doi>{doi}</doi>
             <urn>{urn}</urn>
-            <otherid>
-              <id>None</id>
-              <version>None</version>
-            </otherid>
           </bag-info>
         </result>
       }

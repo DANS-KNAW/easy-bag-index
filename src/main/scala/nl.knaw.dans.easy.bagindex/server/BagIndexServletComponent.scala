@@ -29,7 +29,7 @@ import org.json4s.native.JsonMethods._
 import org.scalatra._
 
 import scala.util.{ Failure, Success, Try }
-import scala.xml.{ Node, PrettyPrinter }
+import scala.xml.{ Node, PrettyPrinter, Text }
 
 trait BagIndexServletComponent {
   this: IndexBagComponent with DatabaseComponent with DatabaseAccessComponent =>
@@ -51,10 +51,18 @@ trait BagIndexServletComponent {
         <created>{bagInfo.created.toString(dateTimeFormatter)}</created>
         <doi>{bagInfo.doi}</doi>
         <urn>{bagInfo.urn}</urn>
-        <otherid>
-          <id>{bagInfo.otherId.id}</id>
-          <version>{bagInfo.otherId.version}</version>
-        </otherid>
+        {
+          bagInfo.otherId.id.map{ id =>
+            <otherid>
+              <id>{ id }</id>
+              {
+                bagInfo.otherId.version.map{version =>
+                  <version>{ version }</version>
+                }.getOrElse(Text(""))
+              }
+            </otherid>
+          }.getOrElse(Text(""))
+        }
       </bag-info>
     }
 
