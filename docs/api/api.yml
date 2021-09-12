@@ -31,14 +31,50 @@ paths:
                 description: A plain text, human readable description of the service
                 example: EASY Bag Index running v1.2.3
 
-  /search?doi={DOI}:
+  /search:
     get:
-      summary: Returns the Bag Index metadata for all items related to a digital object identifier.
+      summary: Returns the Bag Index metadata for all items related to the given identifier.
       description: |
-        The item fetched is specified by the DOI. The results can contain more than one bag-info object.
+        The item fetched is specified by the given identifier. One of the query-parameters 'doi', 'urn' or 'otherId' must be given. The results can contain more than one bag-info object.
 
-      parameters:
-        - $ref: '#/components/parameters/DOI'
+      parameters: [
+      {
+        name: "doi",
+        in: query,
+        description: "The Digital Object Identifier of the targeted bag",
+        schema: {
+          type: string
+        },
+        example: "10.5072/abc-def"
+      },
+      {
+        name: "urn",
+        in: query,
+        description: "Uniform Resource Name of the targeted bag",
+        schema: {
+          type: string
+        },
+        example: "urn:nbn:nl:ui:13-ab-cdef"
+      },
+      {
+        name: "otherId",
+        in: query,
+        description: "Identifier given by the depositor of the targeted bag. Can be used in conjunction with otherIdVersion",
+        schema: {
+          type: string
+        },
+        example: "AB-123"
+      },
+      {
+        name: "otherIdVersion",
+        in: query,
+        description: "The version of the identifier given by the depositor of the targeted bag. Can only be used in conjunction with otherId",
+        schema: {
+          type: string
+        },
+        example: "v3"
+      },
+      ]
 
       responses:
         200:
@@ -51,35 +87,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/bagIndexArrayOk"
         400:
-          description: The query parameter was not supported.
+          description: The query parameter was not supported. One of 'doi', 'urn' or 'otherId' must be given.
         500:
           $ref: '#/components/responses/Unavailable'
 
-  /search?urn={URN}:
-    get:
-      summary: Returns the Bag Index metadata for all items related to a URN:NBN (National Bibliographic Number).
-      description: |
-        The item fetched is specified by the URN. The results can contain more than one bag-info object.
-
-      parameters:
-        - $ref: '#/components/parameters/URN'
-
-      responses:
-        200:
-          description: Bag index object
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/bagIndexArrayOk"
-            application/xml:
-              schema:
-                $ref: "#/components/schemas/bagIndexArrayOk"
-        400:
-          description: The query parameter was not supported.
-        500:
-          $ref: '#/components/responses/Unavailable'
-
-  /bag-sequence?contains={UUID}:
+  /bag-sequence:
     get:
       summary: Returns a newline separated list of UUIDs that make up the bag-sequence for the specified bag.
       description: |
@@ -90,6 +102,7 @@ paths:
           schema:
             type: string
           description: the UUID to search for
+          required: true
 
       responses:
         200:
@@ -165,20 +178,7 @@ components:
         type: string
       required: true
       description: bag-id of the targeted bag
-    DOI:
-      in: path
-      name: DOI
-      schema:
-        type: string
-      required: true
-      description: digital object identifier of the targeted bag
-    URN:
-      in: path
-      name: URN
-      schema:
-        type: string
-      required: true
-      description: Uniform Resource Name of the targeted bag
+
 
   responses:
     Unavailable:
@@ -197,6 +197,8 @@ components:
             created: 2015-05-19T00:00:00.000+02:00,
             doi: 10.17026/test-x6f-kf66
             urn: urn:nbn:nl:ui:13-00-1haq
+            otherId: AB-124
+            otherVersionId: v3
       properties:
         result:
           type: object
@@ -219,6 +221,12 @@ components:
                 urn:
                   type: string
                   format: "urn"
+                otherId:
+                  type: string
+                  format: "otherId"
+                otherIdVersion:
+                  type: string
+                  format: "otherIdVersion"
 
     bagIndexArrayOk:
       type: object
