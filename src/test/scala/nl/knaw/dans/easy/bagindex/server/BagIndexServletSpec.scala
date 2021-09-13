@@ -344,9 +344,67 @@ class BagIndexServletSpec extends TestSupportFixture
     }
   }
 
+  it should "return bag by otherId without version" in {
+    val uuid1 = UUID.fromString("00000000-0000-0000-0000-000000000001")
+    index.addFromBagStore(uuid1) shouldBe a[Success[_]]
+    val created = DateTime.parse("2017-01-16T14:35:00.888")
+    get(s"/search", params = Seq("otherId" -> "blabla"), headers = Seq()) {
+      status shouldBe 200
+      body shouldBe
+        s"""{
+            |  "result":[{
+            |    "bag-info":{
+            |      "bag-id":"$uuid1",
+            |      "base-id":"$uuid1",
+            |      "created":"${ created.toString(dateTimeFormatter) }",
+            |      "doi":"10.5072/dans-2xg-umq8",
+            |      "urn":"urn:nbn:nl:ui:13-00-1haq",
+            |      "otherId":"blabla",
+            |      "otherIdVersion":"1"
+            |    }
+            |  }]
+            |}""".stripMargin
+    }
+  }
+
+  it should "return bag by otherIdVersion" in {
+    val uuid1 = UUID.fromString("00000000-0000-0000-0000-000000000001")
+    index.addFromBagStore(uuid1) shouldBe a[Success[_]]
+    val created = DateTime.parse("2017-01-16T14:35:00.888")
+    get(s"/search", params = Seq("otherId" -> "blabla", "otherIdVersion" -> "1"), headers = Seq()) {
+      status shouldBe 200
+      body shouldBe
+        s"""{
+            |  "result":[{
+            |    "bag-info":{
+            |      "bag-id":"$uuid1",
+            |      "base-id":"$uuid1",
+            |      "created":"${ created.toString(dateTimeFormatter) }",
+            |      "doi":"10.5072/dans-2xg-umq8",
+            |      "urn":"urn:nbn:nl:ui:13-00-1haq",
+            |      "otherId":"blabla",
+            |      "otherIdVersion":"1"
+            |    }
+            |  }]
+            |}""".stripMargin
+    }
+  }
+
+  it should "not return any bag with a wrong otherIdVersion" in {
+    val uuid1 = UUID.fromString("00000000-0000-0000-0000-000000000001")
+    index.addFromBagStore(uuid1) shouldBe a[Success[_]]
+    get(s"/search", params = Seq("otherId" -> "blabla", "otherIdVersion" -> "99"), headers = Seq()) {
+      status shouldBe 200
+      body shouldBe
+        s"""{
+            |  "result":[]
+            |}""".stripMargin
+    }
+  }
+
   it should "return an empty response when the bagId is unknown" in {
     val uuid = UUID.randomUUID()
-    get(s"/bags/${ uuid }") {
+    get(s"/bags/$uuid") {
       status shouldBe 404
       body shouldBe s"bag with id $uuid could not be found"
     }

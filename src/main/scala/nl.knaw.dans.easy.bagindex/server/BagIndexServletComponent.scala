@@ -109,7 +109,7 @@ trait BagIndexServletComponent {
         })
       }
       def searchWithOtherIdVersion(version: String): Try[String] = {
-        params.get("otherId").map(searchWithVersionedOtherId(version, _))
+        params.get("otherId").map(searchWithVersionedOtherId(_, version))
           .getOrElse(Failure(new IllegalArgumentException("otherIdVersion for search query specified but no otherId")))
       }
 
