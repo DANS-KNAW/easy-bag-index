@@ -15,9 +15,8 @@
  */
 package nl.knaw.dans.easy.bagindex.components
 
-import java.sql.{ Connection, PreparedStatement, ResultSet, SQLException }
+import java.sql.{ Connection, PreparedStatement, ResultSet, SQLException, Types }
 import java.util.UUID
-
 import nl.knaw.dans.easy.bagindex._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
@@ -25,7 +24,7 @@ import resource._
 
 import scala.collection.immutable.Seq
 import scala.util.{ Failure, Try }
-
+import nl.knaw.dans.lib.string._
 trait DatabaseComponent extends DebugEnhancedLogging {
 
   val database: Database
@@ -60,13 +59,21 @@ trait DatabaseComponent extends DebugEnhancedLogging {
 
   trait Database {
     private def getBagInfo(result: ResultSet): BagInfo = {
+      def extractOption(otherId: String) = {
+        result.getString(otherId).toOption.map(_.trim)
+      }
+
       BagInfo(
         bagId = UUID.fromString(result.getString("bagId").trim),
         baseId = UUID.fromString(result.getString("base").trim),
         created = DateTime.parse(result.getString("created").trim, dateTimeFormatter),
         doi = result.getString("doi").trim,
         urn = result.getString("urn").trim,
-        otherId = new OtherId(result.getString("otherId").trim, result.getString("otherIdVersion").trim))
+        otherId = new OtherId(
+          extractOption("otherId"),
+          extractOption("otherIdVersion")
+        )
+      )
     }
 
     private def getBagId(result: ResultSet): BagId = {
@@ -131,6 +138,14 @@ trait DatabaseComponent extends DebugEnhancedLogging {
       Query(s"SELECT bagId, base, created, doi, urn, otherId, otherIdVersion FROM bag_info WHERE $identifierType=?;")(_.setString(1, identifier)).selectMany(getBagInfo)
     }
 
+    def getBagsWithVersionedVersionedOtherId(id: Identifier, version: String)(implicit connection: Connection): Try[Seq[BagInfo]] = {
+      trace(id, version)
+      Query(s"SELECT bagId, base, created, doi, urn, otherId, otherIdVersion FROM bag_info WHERE otherId=? AND otherIdVersion=?;") { statement =>
+        statement.setString(1, id)
+        statement.setString(2, version)
+      }.selectMany(getBagInfo)
+    }
+
     /**
      * Returns a sequence of all bag relations that are present in the database.
      * '''Warning:''' this may load large amounts of data into memory.
@@ -162,8 +177,16 @@ trait DatabaseComponent extends DebugEnhancedLogging {
           prepStatement.setString(3, created.toString(dateTimeFormatter))
           prepStatement.setString(4, doi)
           prepStatement.setString(5, urn)
-          prepStatement.setString(6, otherId.id.getOrElse(""))
-          prepStatement.setString(7, otherId.version.getOrElse(""))
+          otherId.id.map(
+            prepStatement.setString(6,_)
+          ).getOrElse(
+            prepStatement.setNull(6,Types.VARCHAR)
+          )
+          otherId.version.map(
+            prepStatement.setString(7,_)
+          ).getOrElse(
+            prepStatement.setNull(7,Types.VARCHAR)
+          )
           prepStatement.executeUpdate()
         })
         .tried
@@ -174,10 +197,12 @@ trait DatabaseComponent extends DebugEnhancedLogging {
         }
     }
 
-    //TODO: how to set the second parameter in the prepared statement?
     def getAllBagsWithOtherIdVersion(otherId: String, otherIdVersion: String)(implicit connection: Connection): Try[Seq[BagInfo]] = {
       trace(otherId, otherIdVersion)
-      Query(s"SELECT bagId, base, created, doi, urn, otherId, otherIdVersion FROM bag_info WHERE otherId=? and otherIdVersion=?;")(_.setString(1, otherId)).selectMany(getBagInfo)
+      Query(s"SELECT bagId, base, created, doi, urn, otherId, otherIdVersion FROM bag_info WHERE otherId=? AND otherIdVersion=?;") { statement =>
+        statement.setString(1, otherId)
+        statement.setString(2, otherIdVersion)
+      }.selectMany(getBagInfo)
     }
   }
 }

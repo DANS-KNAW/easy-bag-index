@@ -17,8 +17,7 @@ package nl.knaw.dans.easy.bagindex.access
 
 import java.sql.SQLException
 import java.util.UUID
-
-import nl.knaw.dans.easy.bagindex.components.DatabaseComponent
+import nl.knaw.dans.easy.bagindex.components.{ DatabaseComponent, OtherId }
 import nl.knaw.dans.easy.bagindex.{ BagIndexDatabaseFixture, TestSupportFixture }
 import org.joda.time.DateTime
 
@@ -27,6 +26,7 @@ import scala.util.{ Failure, Success, Try }
 class DatabaseAccessSpec extends TestSupportFixture with BagIndexDatabaseFixture with DatabaseComponent {
 
   override val database: Database = new Database {}
+  private val noOtherId: OtherId = new OtherId(None, None)
 
   "doTransaction" should "succeed when the arg returns a Success" in {
     databaseAccess.doTransaction(_ => Success("foo")) should matchPattern { case Success("foo") => }
@@ -51,7 +51,7 @@ class DatabaseAccessSpec extends TestSupportFixture with BagIndexDatabaseFixture
     }
 
     inside(databaseAccess.doTransaction(implicit c => {
-      val add = database.addBagInfo(bagId, bagId, DateTime.now, testDoi, testUrn)(c)
+      val add = database.addBagInfo(bagId, bagId, DateTime.now, testDoi, testUrn, noOtherId)(c)
       add shouldBe a[Success[_]]
 
       // check that the bag was added properly
@@ -83,7 +83,7 @@ class DatabaseAccessSpec extends TestSupportFixture with BagIndexDatabaseFixture
     }
 
     databaseAccess.doTransaction(implicit c => {
-      val add = database.addBagInfo(bagId, bagId, DateTime.now, testDoi, testUrn)(c)
+      val add = database.addBagInfo(bagId, bagId, DateTime.now, testDoi, testUrn, noOtherId)(c)
       add shouldBe a[Success[_]]
 
       // check that the bag was added properly

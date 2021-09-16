@@ -17,6 +17,7 @@ package nl.knaw.dans.easy.bagindex.server
 
 import nl.knaw.dans.easy.bagindex._
 import nl.knaw.dans.easy.bagindex.access.DatabaseAccessComponent
+import nl.knaw.dans.easy.bagindex.command.Command.database.getAllBagsWithOtherIdVersion
 import nl.knaw.dans.easy.bagindex.components.{ DatabaseComponent, IndexBagComponent }
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
@@ -29,7 +30,7 @@ import org.json4s.native.JsonMethods._
 import org.scalatra._
 
 import scala.util.{ Failure, Success, Try }
-import scala.xml.{ Node, PrettyPrinter }
+import scala.xml.{ Node, PrettyPrinter, Text }
 
 trait BagIndexServletComponent {
   this: IndexBagComponent with DatabaseComponent with DatabaseAccessComponent =>
@@ -51,10 +52,18 @@ trait BagIndexServletComponent {
         <created>{bagInfo.created.toString(dateTimeFormatter)}</created>
         <doi>{bagInfo.doi}</doi>
         <urn>{bagInfo.urn}</urn>
-        <otherid>
-          <id>{bagInfo.otherId.id}</id>
-          <version>{bagInfo.otherId.version}</version>
-        </otherid>
+        {
+          bagInfo.otherId.id.map { id =>
+            <otherid>
+              <id>{ id }</id>
+              {
+                bagInfo.otherId.version.map { version =>
+                  <version>{ version }</version>
+                }.getOrElse(Text(""))
+              }
+            </otherid>
+          }.getOrElse(Text(""))
+        }
       </bag-info>
     }
 
@@ -85,6 +94,7 @@ trait BagIndexServletComponent {
       Ok(s"EASY Bag Index running v$version.")
     }
 
+
     get("/search") {
       def searchWithIdentifier(identifier: Identifier, identifierType: String): Try[String] = {
         databaseAccess.doTransaction(implicit c => {
@@ -92,15 +102,26 @@ trait BagIndexServletComponent {
             .map(createResponse[Seq[BagInfo]](relations => <result>{relations.map(toXml)}</result>)(relations => "result" -> relations.map(toJson)))
         })
       }
+      def searchWithVersionedOtherId(id: Identifier, version: String): Try[String] = {
+        databaseAccess.doTransaction(implicit c => {
+          database.getAllBagsWithOtherIdVersion(id, version)
+            .map(createResponse[Seq[BagInfo]](relations => <result>{relations.map(toXml)}</result>)(relations => "result" -> relations.map(toJson)))
+        })
+      }
+      def searchWithOtherIdVersion(version: String): Try[String] = {
+        params.get("otherId").map(searchWithVersionedOtherId(_, version))
+          .getOrElse(Failure(new IllegalArgumentException("otherIdVersion for search query specified but no otherId")))
+      }
 
       Option(params)
         .filter(_.size > 0)
-        .map(params => {
-          lazy val result = params.get("doi").map(searchWithIdentifier(_, "doi"))
-          result
+        .map { params =>
+          params.get("otherIdVersion").map(searchWithOtherIdVersion)
+            .orElse(params.get("doi").map(searchWithIdentifier(_, "doi")))
             .orElse(params.get("urn").map(searchWithIdentifier(_, "urn")))
+            .orElse(params.get("otherId").map(searchWithIdentifier(_, "otherId")))
             .getOrElse(Failure(new IllegalArgumentException("query parameter not supported")))
-        })
+        }
         .getOrElse(Failure(new IllegalArgumentException("no search query specified")))
         .map(Ok(_))
         .doIfFailure { case e => logger.error(e.getMessage, e) }

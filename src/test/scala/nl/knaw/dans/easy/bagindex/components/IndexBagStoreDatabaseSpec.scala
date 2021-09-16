@@ -30,6 +30,7 @@ class IndexBagStoreDatabaseSpec extends TestSupportFixture
 
   override val database: Database = new Database {}
   override val indexDatabase: IndexBagStoreDatabase = new IndexBagStoreDatabase {}
+  private val noOtherId: OtherId = new OtherId(None, None)
 
   def setupBagStoreIndexTestCase(): Map[Char, (BagId, DateTime)] = {
     // sequence with first bag F
@@ -82,18 +83,18 @@ class IndexBagStoreDatabaseSpec extends TestSupportFixture
     val urnY = "urn:nbn:nl:ui:13-00-Y"
     val urnZ = "urn:nbn:nl:ui:13-00-Z"
 
-    val relations = BagInfo(bagIdA, bagIdE, dateA, doiA, urnA) ::
-      BagInfo(bagIdB, bagIdA, dateB, doiB, urnB) ::
-      BagInfo(bagIdC, bagIdA, dateC, doiC, urnC) ::
-      BagInfo(bagIdD, bagIdB, dateD, doiD, urnD) ::
-      BagInfo(bagIdE, bagIdF, dateE, doiE, urnE) ::
-      BagInfo(bagIdF, bagIdF, dateF, doiF, urnF) ::
-      BagInfo(bagIdG, bagIdC, dateG, doiG, urnG) ::
-      BagInfo(bagIdX, bagIdY, dateX, doiX, urnX) ::
-      BagInfo(bagIdY, bagIdZ, dateY, doiY, urnY) ::
-      BagInfo(bagIdZ, bagIdZ, dateZ, doiZ, urnZ) :: Nil
+    val relations = BagInfo(bagIdA, bagIdE, dateA, doiA, urnA, noOtherId) ::
+      BagInfo(bagIdB, bagIdA, dateB, doiB, urnB, noOtherId) ::
+      BagInfo(bagIdC, bagIdA, dateC, doiC, urnC, noOtherId) ::
+      BagInfo(bagIdD, bagIdB, dateD, doiD, urnD, noOtherId) ::
+      BagInfo(bagIdE, bagIdF, dateE, doiE, urnE, noOtherId) ::
+      BagInfo(bagIdG, bagIdC, dateG, doiG, urnG, noOtherId) ::
+      BagInfo(bagIdF, bagIdF, dateF, doiF, urnF, noOtherId) ::
+      BagInfo(bagIdX, bagIdY, dateX, doiX, urnX, noOtherId) ::
+      BagInfo(bagIdY, bagIdZ, dateY, doiY, urnY, noOtherId) ::
+      BagInfo(bagIdZ, bagIdZ, dateZ, doiZ, urnZ, noOtherId) :: Nil
 
-    relations.map(info => database.addBagInfo(info.bagId, info.baseId, info.created, info.doi, info.urn)).collectResults shouldBe a[Success[_]]
+    relations.map(info => database.addBagInfo(info.bagId, info.baseId, info.created, info.doi, info.urn, noOtherId)).collectResults shouldBe a[Success[_]]
 
     Map(
       'a' -> (bagIdA, dateA),

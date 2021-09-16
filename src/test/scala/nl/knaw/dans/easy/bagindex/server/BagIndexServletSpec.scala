@@ -44,7 +44,7 @@ class BagIndexServletSpec extends TestSupportFixture
 
   override val database: Database = new Database {}
   override val index: IndexBag = new IndexBag {}
-  override val bagIndexServlet = new BagIndexServlet {
+  override val bagIndexServlet: BagIndexServlet = new BagIndexServlet {
     override val version: String = testVersion
   }
 
@@ -82,7 +82,9 @@ class BagIndexServletSpec extends TestSupportFixture
            |      "base-id":"$uuid1",
            |      "created":"${ created.toString(dateTimeFormatter) }",
            |      "doi":"$doi",
-           |      "urn":"$urn"
+           |      "urn":"$urn",
+           |      "otherId":"blabla",
+           |      "otherIdVersion":"1"
            |    }
            |  }]
            |}""".stripMargin
@@ -110,7 +112,7 @@ class BagIndexServletSpec extends TestSupportFixture
             <created>{created.toString(dateTimeFormatter)}</created>
             <doi>{doi}</doi>
             <urn>{urn}</urn>
-          </bag-info>
+        </bag-info>
         </result>
       }
     }
@@ -148,7 +150,9 @@ class BagIndexServletSpec extends TestSupportFixture
            |      "base-id":"$uuid1",
            |      "created":"${ created.toString(dateTimeFormatter) }",
            |      "doi":"$doi",
-           |      "urn":"$urn"
+           |      "urn":"$urn",
+           |      "otherId":"blabla",
+           |      "otherIdVersion":"1"
            |    }
            |  }]
            |}""".stripMargin
@@ -176,7 +180,7 @@ class BagIndexServletSpec extends TestSupportFixture
             <created>{created.toString(dateTimeFormatter)}</created>
             <doi>{doi}</doi>
             <urn>{urn}</urn>
-          </bag-info>
+        </bag-info>
         </result>
       }
     }
@@ -264,9 +268,6 @@ class BagIndexServletSpec extends TestSupportFixture
     index.addFromBagStore(uuid2) shouldBe a[Success[_]]
     index.addFromBagStore(uuid3) shouldBe a[Success[_]]
 
-    val doi = "10.5072/dans-2xg-umq0"
-    val urn = "urn:nbn:nl:ui:13-00-3haq"
-    val created = DateTime.parse("2017-01-18T14:35:00.888")
     get(s"/bags/$uuid3", headers = Seq("Accept" -> "application/xml")) {
       status shouldBe 200
       XML.loadString(body) should equalTrimmed {
@@ -274,9 +275,44 @@ class BagIndexServletSpec extends TestSupportFixture
           <bag-info>
             <bag-id>{uuid3}</bag-id>
             <base-id>{uuid1}</base-id>
-            <created>{created.toString(dateTimeFormatter)}</created>
-            <doi>{doi}</doi>
-            <urn>{urn}</urn>
+            <created>{DateTime.parse("2017-01-18T14:35:00.888").toString(dateTimeFormatter)}</created>
+            <doi>{"10.5072/dans-2xg-umq0"}</doi>
+            <urn>{"urn:nbn:nl:ui:13-00-3haq"}</urn>
+          </bag-info>
+        </result>
+      }
+    }
+    get(s"/bags/$uuid2", headers = Seq("Accept" -> "application/xml")) {
+      status shouldBe 200
+      XML.loadString(body) should equalTrimmed {
+        <result>
+          <bag-info>
+            <bag-id>{uuid2}</bag-id>
+            <base-id>{uuid1}</base-id>
+            <created>{DateTime.parse("2017-01-17T14:35:00.888").toString(dateTimeFormatter)}</created>
+            <doi>{"10.5072/dans-2xg-umq9"}</doi>
+            <urn>{"urn:nbn:nl:ui:13-00-2haq"}</urn>
+            <otherid>
+              <id>rabarbera</id>
+            </otherid>
+          </bag-info>
+        </result>
+      }
+    }
+    get(s"/bags/$uuid1", headers = Seq("Accept" -> "application/xml")) {
+      status shouldBe 200
+      XML.loadString(body) should equalTrimmed {
+        <result>
+          <bag-info>
+            <bag-id>{uuid1}</bag-id>
+            <base-id>{uuid1}</base-id>
+            <created>{DateTime.parse("2017-01-16T14:35:00.888").toString(dateTimeFormatter)}</created>
+            <doi>{"10.5072/dans-2xg-umq8"}</doi>
+            <urn>{"urn:nbn:nl:ui:13-00-1haq"}</urn>
+            <otherid>
+              <id>blabla</id>
+              <version>1</version>
+            </otherid>
           </bag-info>
         </result>
       }
@@ -299,16 +335,76 @@ class BagIndexServletSpec extends TestSupportFixture
            |      "base-id":"$uuid1",
            |      "created":"${ created.toString(dateTimeFormatter) }",
            |      "doi":"$doi",
-           |      "urn":"$urn"
+           |      "urn":"$urn",
+           |      "otherId":"blabla",
+           |      "otherIdVersion":"1"
            |    }
            |  }
            |}""".stripMargin
     }
   }
 
+  it should "return bag by otherId without version" in {
+    val uuid1 = UUID.fromString("00000000-0000-0000-0000-000000000001")
+    index.addFromBagStore(uuid1) shouldBe a[Success[_]]
+    val created = DateTime.parse("2017-01-16T14:35:00.888")
+    get(s"/search", params = Seq("otherId" -> "blabla"), headers = Seq()) {
+      status shouldBe 200
+      body shouldBe
+        s"""{
+            |  "result":[{
+            |    "bag-info":{
+            |      "bag-id":"$uuid1",
+            |      "base-id":"$uuid1",
+            |      "created":"${ created.toString(dateTimeFormatter) }",
+            |      "doi":"10.5072/dans-2xg-umq8",
+            |      "urn":"urn:nbn:nl:ui:13-00-1haq",
+            |      "otherId":"blabla",
+            |      "otherIdVersion":"1"
+            |    }
+            |  }]
+            |}""".stripMargin
+    }
+  }
+
+  it should "return bag by otherIdVersion" in {
+    val uuid1 = UUID.fromString("00000000-0000-0000-0000-000000000001")
+    index.addFromBagStore(uuid1) shouldBe a[Success[_]]
+    val created = DateTime.parse("2017-01-16T14:35:00.888")
+    get(s"/search", params = Seq("otherId" -> "blabla", "otherIdVersion" -> "1"), headers = Seq()) {
+      status shouldBe 200
+      body shouldBe
+        s"""{
+            |  "result":[{
+            |    "bag-info":{
+            |      "bag-id":"$uuid1",
+            |      "base-id":"$uuid1",
+            |      "created":"${ created.toString(dateTimeFormatter) }",
+            |      "doi":"10.5072/dans-2xg-umq8",
+            |      "urn":"urn:nbn:nl:ui:13-00-1haq",
+            |      "otherId":"blabla",
+            |      "otherIdVersion":"1"
+            |    }
+            |  }]
+            |}""".stripMargin
+    }
+  }
+
+  it should "not return any bag with a wrong otherIdVersion" in {
+    val uuid1 = UUID.fromString("00000000-0000-0000-0000-000000000001")
+    index.addFromBagStore(uuid1) shouldBe a[Success[_]]
+    get(s"/search", params = Seq("otherId" -> "blabla", "otherIdVersion" -> "99"), headers = Seq()) {
+      status shouldBe 200
+      body shouldBe
+        s"""{
+            |  "result":[]
+            |}""".stripMargin
+    }
+  }
+
   it should "return an empty response when the bagId is unknown" in {
     val uuid = UUID.randomUUID()
-    get(s"/bags/${ uuid }") {
+    get(s"/bags/$uuid") {
       status shouldBe 404
       body shouldBe s"bag with id $uuid could not be found"
     }
@@ -342,7 +438,7 @@ class BagIndexServletSpec extends TestSupportFixture
     put(s"/bags/$uuid2") {
       status shouldBe 201
       body shouldBe empty
-      database.getBagInfo(uuid2) should matchPattern { case Success(BagInfo(`uuid2`, `uuid1`, _, _, _)) => }
+      database.getBagInfo(uuid2) should matchPattern { case Success(BagInfo(`uuid2`, `uuid1`, _, _, _, _)) => }
     }
   }
 
@@ -353,7 +449,7 @@ class BagIndexServletSpec extends TestSupportFixture
     put(s"/bags/$uuid1") {
       status shouldBe 400
       body shouldBe s"Bag '$uuid1' is already in the index"
-      database.getBagInfo(uuid1) should matchPattern { case Success(BagInfo(`uuid1`, `uuid1`, _, _, _)) => }
+      database.getBagInfo(uuid1) should matchPattern { case Success(BagInfo(`uuid1`, `uuid1`, _, _, _, _)) => }
     }
   }
 

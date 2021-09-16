@@ -16,4 +16,5 @@
 package nl.knaw.dans.easy.bagindex.components
 
 class OtherId(val id: Option[String], val version: Option[String]) {
+  override def toString = s"OtherId($id,$version)"
 }
