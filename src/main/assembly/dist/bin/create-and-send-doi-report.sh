@@ -12,7 +12,7 @@ TO=$4
 BCC=$5
 TMPDIR=/tmp
 DATE=$(date +%Y-%m-%d)
-REPORT=$TMPDIR/$DOI_PREFIX-doi-report-$DATE.csv
+REPORT=$TMPDIR/$DARK_HOST-$DOI_PREFIX-doi-report-$DATE.csv
 MINDEPTH=3
 MAXDEPTH=5
 
